@@ -2,7 +2,7 @@
 A probe into the MIMIC III dataset. Used as an investigatory project alongside Udacity capstone.
 
 ## Goal:
-The goal of this project is to probe some basic information from the MIMIC III dataset. This project is an investigation to aid in decideing upon a useful capstone project in the Udacity Machine Learning Engineer Nanodegree program.
+The goal of this project is to probe some basic information from the MIMIC III dataset. This project is an investigation to aid in deciding upon a useful capstone project in the Udacity Machine Learning Engineer Nanodegree program.
 
 Each file will contain a simple probe or learning procedure. No raw data will be shared per the agreement of data access. 
 
