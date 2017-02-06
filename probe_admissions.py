@@ -18,15 +18,21 @@ Patient = Base.classes.patients
 
 session = Session(engine)
 
-import pdb
-pdb.set_trace()
-
 admission_query = session.query(Admission)
 
 df = pd.read_sql(admission_query.statement, admission_query.session.bind)
 # admission_type, hospital_expire_flag
 
-expiry = df[['admission_type', 'hospital_expire_flag']]
+# expiry = df[['admission_type', 'hospital_expire_flag']]
+expiry = df.loc[:, ['admission_type', 'hospital_expire_flag']]
+
+at_le = preprocessing.LabelEncoder()
+at_le.fit(['ELECTIVE', 'URGENT', 'NEWBORN', 'EMERGENCY'])
+
+expiry['admission_type_encoded'] = at_le.transform(expiry['admission_type'])
+
+import pdb
+pdb.set_trace()
 
 # rudimentary relationships are produced
 # session.add(Address(email_address="foo@bar.com", user=User(name="foo")))
