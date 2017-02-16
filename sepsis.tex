@@ -28,7 +28,7 @@ Certain treatments may be highly effective, therefore it is important to pay spe
 Sepsis is partially responsible for 6\% of all deaths in the United States~\cite{cdc}. Sepsis is a highly variable condition caused by numerous possibilities. A patient may arrive at the ICU with sepsis or may be diagnosed during the stay. There is no diagnostic test to confirm or deny the existence of such a condition in a patient. It is based on the clinical judgment of physician. Regardless of the cause, the speed at which treatment is administered and the types of treatments are critical in stabilizing a patients blood pressure, body temperature, eliminate infection, and keep cardiac output stable. Due to the variable, and difficult nature of the condition a machine learning approach may be able to aid in predicting the severity of the condition and the effectiveness of potential treatments.
 
 
-\section{Problem Statement}
+\section{Problem}
 Sepsis is a complex and indirect condition that is very dangerous and difficult to diagnose. Providing an anti-microbial/anti-biotic treatment early can be critical; often non-optimal antibiotics are prescribed prior to the lab culture results being provided. Finding the most prevalent cause for infection and most effective anti-microbial treatment can save time and lives in the initial treatment of a patient suffering from sepsis.
 \section{Datasets and Inputs}
 For this study I will be using the MIMIC-III dataset(https://mimic.physionet.org/). This dataset is freely accessible and suggested for use by Udacity. I will be utilizing the data on more than 40,000 individual patients. 1184 patients were admitted with sepsis and thousands more diagnosed by the end of their stay. I will be focusing on the patients admitted with sepsis since I have a time of admittance that will aid in finding more effective treatments. Diagnosis data is tied to icd-9 billing codes that do not have a time associated with them unfortunately.
@@ -49,6 +49,19 @@ I have downloaded the data locally as csv files. I then modified a script provid
 \section{Solution}
 I am writing a machine learning algorithm to take basic information about the patient including the type of bacterial infection, type of antibiotic treatment, time between admission and first dose, and survival of patient. The goal is to predict the survival of a patient based off of this information. As the project progresses it may require me to include more complex information such as blood pressure measurements and categorical data about whether vasopressors were used to combat low bp. 
 The end goal is to be able to predict the survivability of a patient but as a corollary make predictions about the best tailored treatments for each patient.
+
+\section{Benchmark and Evaluation}
+There are few studies into the predictability of patient survival from sever sepsis. There are also many factors that are important in how the prediction is being made. I will be focusing on the following research: "Predicting survival of patients with sepsis by use of regression and neural network models" by J.R. Flanagan, et al. \begin{quotation}
+  "The development of multiple organ failure after the diagnosis of sepsis was predicted accurately (81.5\%) with either the MLR or the NN model. Both the MLR and the NN methods depended on the interpretation of a likelihood quantity, requiring the choice of a threshold to make a survival prediction."\cite{sepsisresearch}
+\end{quotation}
+
+While this study was done in 1996, there have been few followup studies. The few that I found had a similar success rate. Due to the detail of this study I am focusing on the work of Flanagan et al. for my benchmark. I have requested full access to their research via ResearchGateway.
+
+\section{Design}
+Due to the nature of the problem and the relatively large number of features that will likely be involved, I will be comparing the results of a Neural Network, Adaboost with a decision stump as its base estimator or extreme gradient boosting. Only Adaboost is possible in SKlearn, so I may need special permission to use Tensorflow for a multi-layer Neural Network and XGBoost for extreme gradient boosting.
+
+The data is spread across multiple database tables. For most algorithms I will need to join this data into a large single entry if not using time series data. For reusability I will likely create a new table with this joined information for easy querying.
+
 
 \bibliography{citations}{}
 \bibliographystyle{ieeetr}
