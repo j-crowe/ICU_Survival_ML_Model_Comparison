@@ -29,29 +29,38 @@ Sepsis is partially responsible for 6\% of all deaths in the United States~\cite
 
 
 \section{Problem}
-Sepsis is a complex and indirect condition that is very dangerous and difficult to diagnose. Providing an anti-microbial/anti-biotic treatment early can be critical; often non-optimal antibiotics are prescribed prior to the lab culture results are returned. Finding the most prevalent cause for infection and most effective anti-microbial treatment can save time and lives in the initial treatment of a patient suffering from sepsis.
 
-It is useful to know the severity of the condition upon arrival to better treat patients. If a machine learning algorithm can be used to assess a patient at admittance and predict the probability of survival, it would help hospital staff in prioritizing patients.
+A predictive model would be highly useful for ICU staff and physicians. It would aid in prioritizing patients that are considered ``high risk'' and as a simple way to stratify patients in clinical research. 
+
+Upon patient admittance and initial blood and microbiology tests patient survivability will be classified over a 30 day period. While survival rates are available long after 30 days, this is the most critical period for surviving a condition such as sepsis/septic shock. 
+
+Several class features will be considered: gender, ethnicity, culture classification, antibiotic treatment, etc. Several continuous features will also be considered: time before first antibiotic dose, age, respiratory rate, blood lactate levels, creatinine levels, blood pressure, etc.
+
+The survivability of sepsis is strongly correlated with the speed of treatment, age of patient, type of infection, and general state of the condition. The state of the condition can be measured in a variety of ways. Respiratory rate, blood pressure, creatinine (kidneys failing), and lactate levels(anaerobic cellular respiration) strongly suggest the current stage of the condition. Upon arrival these measurements can be used to classify a patient into a survival or not survival group.
 
 \section{Datasets and Inputs}
-For this study I will be using the MIMIC-III dataset(https://mimic.physionet.org/). This dataset is freely accessible and suggested for use by Udacity. I will be utilizing the data on more than 40,000 individual patients. 1184 patients were admitted with sepsis and thousands more diagnosed by the end of their stay. I will be focusing on the patients admitted with sepsis since I have a time of admittance that will aid in finding more effective treatments. Diagnosis data is tied to icd-9 billing codes that do not have a time associated with them unfortunately.
+For this study I will be using the MIMIC-III dataset(https://mimic.physionet.org/). This dataset is freely accessible and suggested for use by Udacity. I will be utilizing the data on more than 40,000 individual patients. 1184 patients were admitted with sepsis and thousands more diagnosed by the end of their stay. I will be focusing on the patients admitted with sepsis since I have a time of admittance that will aid in finding more effective treatments. Diagnosis data is tied to ICD-9 billing codes that do not have a time associated.
 
 It was required to take a short course to gain access to this data by demonstrating some understanding of law and ethics in dealing with this de-identified dataset.
 
 I have downloaded the data locally as csv files. I then modified a script provided by MIT to load the entries into an Amazon RDS Postgres database. This database and server is secured and is HIPAA compliant. I then have spun up an Amazon compute EC2 instance to do most of the heavy lifting. I will be using many tables from the database but the most critical are the following:
 \begin{enumerate}
-\item admissions: the admissions table provides basic patient information on admission including the initial diagnosis, sex, insurance type, etc.
-\item diagnoses\_icd: this table provides all diagnoses assigned to a patient during a hospital stay. Unfortunately this is assigned at the end and cannot be given a time of diagnosis. A sequence is provided however.
-\item microbiologyevents: this table provides information about whether or not an infection is present, how it was obtained, and when.
-\item labevents: this provides measurements such as blood pressure, and information from blood tests.
-\item prescriptions: drugs given to patient along with the time and amount.
-\item patients: this provides basic information about the patient including date of birth, date of death (if applicable), gender, etc.
+\item \textbf{admissions}: the admissions table provides basic patient information on admission including the initial diagnosis, sex, insurance type, etc.
+\item \textbf{diagnoses\_icd}: this table provides all diagnoses assigned to a patient during a hospital stay. Unfortunately this is assigned at the end and cannot be given a time of diagnosis. A sequence is provided however.
+\item \textbf{microbiologyevents}: this table provides information about whether or not an infection is present, how it was obtained, and when.
+\item \textbf{labevents}: this provides measurements such as blood pressure, and information from blood tests.
+\item \textbf{prescriptions}: drugs given to patient along with the time and amount.
+\item \textbf{patients}: this provides basic information about the patient including date of birth, date of death (if applicable), gender, etc.
 \end{enumerate}
+
+In this supervised learning problem, the target attribute must be calculated from the provided information. The goal is to predict survivability within 30 days of admittance. Within the patient table exists a date of death (dod), if applicable, that can be used along with admittance date to calculate the boolean survivability target attribute.
 
 
 \section{Solution}
-I am writing a machine learning algorithm to take basic information about the patient including the type of bacterial infection, type of antibiotic treatment, time between admission and first dose, and survival of patient. The goal is to predict the survival of a patient based off of this information shortly after admittance. As the project progresses it may require me to include more complex information such as blood pressure measurements and categorical data about whether vasopressors were used to combat low bp. 
-The end goal is to be able to predict the survivability of a patient but as a corollary make predictions about the best tailored treatments for each patient. 
+The solution to is to categorizing patients by survivability at admittance. This is calculated by considering: speed of first antibiotic dose, age of patient, type of infection, respiratory rate, blood pressure, creatinine levels, and lactate levels. A supervised learning model will be trained off of this information along with the calculated target value, which is the patient survival over 30 days from admittance.
+
+As the project progresses it may require me to include more complex information such as blood pressure measurements and categorical data about whether vasopressors were used to combat low bp and more.
+Multiple models using different techniques will be developed, analyzed and a comparative analysis between them will be done with the best performing and most generalizable solution being selected.
 
 \section{Benchmark and Evaluation}
 There are few studies into the predictability of patient survival from severe sepsis. There are also many factors that are important in how the prediction is made. I will be focusing on the following research: ``Predicting survival of patients with sepsis by use of regression and neural network models'' by J.R. Flanagan, et al. \begin{quotation}
