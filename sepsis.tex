@@ -68,7 +68,7 @@ There are few studies into the predictability of patient survival from severe se
   ``Survival after sepsis was predicted with an accuracy of 80\% by the NN model, which used only information collected at the time of the diagnosis of sepsis. The development of multiple organ failure after the diagnosis of sepsis was predicted accurately (81.5\%) with either the MLR or the NN model. Both the MLR and the NN methods depended on the interpretation of a likelihood quantity, requiring the choice of a threshold to make a survival prediction. ''\cite{sepsisresearch}
 \end{quotation}
 
-While this study was done in 1996, there have been few follow-up studies. The few follow-up studies had a similar success rate with slightly different attributes and test periods. Due to the detail of this study, I am focusing on the work of Flanagan et al. for my benchmark. I have requested full access to their research via ResearchGateway.
+While this study was done in 1996, there have been few follow-up studies. The few follow-up studies had a similar success rate with slightly different attributes and test periods. Due to the detail of this study, most focus will be put on the work of Flanagan et al. for the benchmark.
 
 \section{Evaluation}
 The evaluation metric that will be used to quantify the performance of both the benchmark model and the solution model will be classification accuracy. The benchmark study by J.R. Flanagan, et al. details the classification accuracy of septic patient survival over a one month period. This is the approach that will be used in the solution model. The results of the solution model and that of the benchmark will finally be compared. Several different solution models will be designed and compared in order to see the difference in accuracy in a complex feature set such as this.
@@ -76,9 +76,9 @@ The evaluation metric that will be used to quantify the performance of both the 
 Using standard classification accuracy is a great metric for quantifying performance. While the feature set is highly complex, the target attribute is boolean and easily assessed. Therefore computing the model's accuracy at classifying patients by boolean survivability is accurate, simple, and understandable.
 
 \section{Design}
-Due to the nature of the problem and the relatively large number of features that will likely be involved, I will be comparing the results of a Neural Network, Adaboost with a decision stump as its base estimator, decision forests, and extreme gradient boosting.
+Due to the nature of the problem and the relatively large number of features that will likely be involved, the results from the following models will be compared: multi-layer neural network, Adaboost with a decision stump as its base estimator, decision forests, and extreme gradient boosting.
 
-The data is spread across multiple database tables. For most algorithms, I will need to join this data into a large single entry if not using time series data. For reusability, I will likely create a new table with this joined information for easy querying.
+The data is spread across multiple database tables. For most algorithms, a large single entry per patient will be formed from this data. For reusability, a new table with this joined information will be created.
 
 \begin{enumerate}	
 
@@ -94,7 +94,7 @@ The data is spread across multiple database tables. For most algorithms, I will 
 		\begin{enumerate}
 			\item Download entire compressed CSV dataset from physionet.org (30GB)
 			\item Spin up an Amazon RDS Postgres database and EC2 Compute instance.
-			\item Modify provided scripts from the MIMIC-III MIT Github repository to load data into my remote RDS Postgres database
+			\item Modify provided scripts from the MIMIC-III MIT Github repository to load data into the remote RDS Postgres database
 			\item Set up docker with all necessary components including SQL alchemy for easy querying and object handling using its ORM.
 		\end{enumerate}
 		
