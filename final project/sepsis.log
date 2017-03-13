@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  13 MAR 2017 15:13
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  13 MAR 2017 16:32
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -438,6 +438,22 @@ File: pgfmodulematrix.code.tex 2013/09/17  (rcs-revision 1.8)
 s/tikzlibrarytopaths.code.tex
 File: tikzlibrarytopaths.code.tex 2008/06/17 v3.0.1a (rcs-revision 1.2)
 )))
+(/usr/local/texlive/2016/texmf-dist/tex/latex/wrapfig/wrapfig.sty
+\wrapoverhang=\dimen168
+\WF@size=\dimen169
+\c@WF@wrappedlines=\count127
+\WF@box=\box41
+\WF@everypar=\toks33
+Package: wrapfig 2003/01/31  v 3.6
+)
+(/usr/local/texlive/2016/texmf-dist/tex/latex/float/float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count128
+\float@exts=\toks34
+\float@box=\box42
+\@float@everytoks=\toks35
+\@floatcapt=\box43
+)
 (/usr/local/texlive/2016/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2015/06/04 1.6 listings language file
 )
@@ -447,33 +463,33 @@ File: lstmisc.sty 2015/06/04 1.6 (Carsten Heinz)
 (./sepsis.aux)
 \openout1 = `sepsis.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-\c@lstlisting=\count127
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+\c@lstlisting=\count129
  ABD: EveryShipout initializing macros
 (/usr/local/texlive/2016/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count128
-\scratchdimen=\dimen168
-\scratchbox=\box41
-\nofMPsegments=\count129
-\nofMParguments=\count130
-\everyMPshowfont=\toks33
-\MPscratchCnt=\count131
-\MPscratchDim=\dimen169
-\MPnumerator=\count132
-\makeMPintoPDFobject=\count133
-\everyMPtoPDFconversion=\toks34
+\scratchcounter=\count130
+\scratchdimen=\dimen170
+\scratchbox=\box44
+\nofMPsegments=\count131
+\nofMParguments=\count132
+\everyMPshowfont=\toks36
+\MPscratchCnt=\count133
+\MPscratchDim=\dimen171
+\MPnumerator=\count134
+\makeMPintoPDFobject=\count135
+\everyMPtoPDFconversion=\toks37
 ) (/usr/local/texlive/2016/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
 Package: pdftexcmds 2016/05/10 v0.21 Utility functions of pdfTeX for LuaTeX (HO
 )
@@ -524,7 +540,29 @@ e
 [1
 
 {/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-[2] [3] [4] (./sepsis.bbl
+[2] <age.png, id=17, 601.24625pt x 403.5075pt>
+File: age.png Graphic file (type png)
+ <use age.png>
+Package pdftex.def Info: age.png used on input line 72.
+(pdftex.def)             Requested size: 225.4804pt x 151.32109pt.
+
+<feature_correlation.png, id=19, 636.3775pt x 478.78876pt>
+File: feature_correlation.png Graphic file (type png)
+
+<use feature_correlation.png>
+Package pdftex.def Info: feature_correlation.png used on input line 86.
+(pdftex.def)             Requested size: 319.42996pt x 240.32161pt.
+
+
+Package wrapfig Warning: Stationary wrapfigure forced to float on input line 97
+.
+
+[3 <./age.png>]
+Overfull \hbox (67.6007pt too wide) in paragraph at lines 98--99
+\OT1/cmr/m/n/10.95 III dataset(https://mimic.physionet.org/)
+ []
+
+[4 <./feature_correlation.png>] [5] [6] (./sepsis.bbl
 Overfull \hbox (10.12932pt too wide) in paragraph at lines 4--7
 []\OT1/cmr/m/n/10.95 C. for Dis-ease Con-trol, ``Sep-sis data re-port.'' https:
 //www.cdc.gov/sepsis/datareports/index.html,
@@ -542,12 +580,12 @@ Underfull \hbox (badness 10000) in paragraph at lines 15--19
 in hu-man sep-tic shock..''
  []
 
-) [5] (./sepsis.aux) ) 
+) [7] (./sepsis.aux) ) 
 Here is how much of TeX's memory you used:
- 13258 strings out of 493014
- 258990 string characters out of 6133351
- 318022 words of memory out of 5000000
- 16556 multiletter control sequences out of 15000+600000
+ 13388 strings out of 493014
+ 260728 string characters out of 6133351
+ 321534 words of memory out of 5000000
+ 16675 multiletter control sequences out of 15000+600000
  9709 words of font info for 35 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  55i,6n,54p,880b,259s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -557,10 +595,10 @@ fonts/cm/cmbx12.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsf
 onts/cm/cmr10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfon
 ts/cm/cmr12.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmr17.pfb>
-Output written on sepsis.pdf (5 pages, 88985 bytes).
+Output written on sepsis.pdf (7 pages, 397494 bytes).
 PDF statistics:
- 43 PDF objects out of 1000 (max. 8388607)
- 30 compressed objects within 1 object stream
+ 56 PDF objects out of 1000 (max. 8388607)
+ 37 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 13 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 23 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -6,6 +6,8 @@
 \usepackage{listings}
 \usepackage{tikz}
 \usepackage{amsmath}
+\usepackage{wrapfig}
+\usepackage{float}
 \lstset{language=C}
 \begin{document}
 
@@ -46,6 +48,52 @@ This metric is used because the low survivability of sepsis. False positives and
 \textbf{Caveat:} Accuracy is not enough in a real world application if the outcome affects human life. Accuracy weighs misclassifications evenly. This is useful when looking at a problem mathematically. Consider the following however: A patient is given a high probability that their cancer is in remission and no further treatment is given. It was a false negative classification and the patient dies. This is much more important to consider than a false positive. Therefore these results are only used in stratifying patients for further studies, not as a real time aid in patient treatment.
 
 Many patients die of sepsis however, around 30\%. Due to this high ratio and the intended problem of stratifying patients for future studies, an accuracy score is useful. If used in a different application, it may be useful to select a model with lower accuracy that ensures very low rates of false negatives, a more dangerous false prediction.
+
+\section{Analysis}
+\subsection{Data Exploration}
+For this study, the MIMIC-III dataset(https://mimic.physionet.org/) will be used. This dataset is freely accessible and suggested for use by Udacity. More than 40,000 individual patient entries will be utilized. 1184 patients were admitted with sepsis and thousands more diagnosed by the end of their stay. Most of the focus will be put on the patients admitted with sepsis since there is an associated time of admittance that will aid in finding more effective treatments.
+
+Once input into a Postgres database, there are 20 tables with patient information and 5 dictionary lookup tables. Much of the data is difficult to process due to lack of standardization across multiple source databases(CareVue and MetaVision). Most of the useful information with datetime information associated with it is available in the following tables: admissions, patients, labevents, microbiology events
+
+\begin{enumerate}
+	\item \textbf{admissions}: Contains information related to a patient's admission. This information includes their hospital stay id, insurance type, date of admission, and suspected diagnosis/condition.
+	\item \textbf{patients}: Patient information such as date of birth, gender, hospital stay id, etc. 
+	\item \textbf{labevents}: Patient lab events with datetime associated with the measurement. This includes information such as creatinine levels.
+	\item \textbf{microbiologyevents}: Patient microbiology tests with datetime associated with the result. This includes tests for infections and resulting prescription.
+\end{enumerate}
+
+Due to the size, variability, and nature of ICU care much of this data must be explored for feasibility in a machine learning model. A good example is blood pressure. While in the MetaVision database, it was standardized with mm/Hg, in the Carevue database that was not the case. It makes the data less useful since information is not standard across different patient entries.
+
+\subsection{Exploratory Visualizations}
+The basic patient information housed within the \textbf{Admissions} table has some potentially useful information. Combining their admission date with their dob we can calculate their age(except patients over 89 due to HIPAA regulations). The visualization of survivability with age is as follows can be observed in figure 1.
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+	\begin{center}
+		\includegraphics[width=0.48\textwidth]{age.png}
+	\end{center}
+	\caption{Age Breakdown}
+\end{wrapfigure}
+
+There is a somewhat noticeable trend in figure 1 with regards to age and survivability of sepsis but it doesn't appear to be anything that an algorithm could rely on strongly. It is important to discover some other useful features.
+
+It may be useful to look at the initial blood tests for feature correlation. Observing all of these blood tests that are correlated with sepsis, the following were had enough datapoints to be useful: bicarbonate, INR, MCH, AST, alkaline phosphatase, PH, creatinine, platelet, PT, PTT, lymphocytes, RBCDW, calcium, neutrophils, glucose, hematocrit, hemoglobin, lactate, BUN, age.
+
+Looking at the feature correlation will allow a better understanding of how the features are correlated with one another as well as which features have a strong or negative correlation to the survivability of sepsis.
+
+
+\begin{wrapfigure}{r}{0.70\textwidth}
+	\begin{center}
+		\includegraphics[width=0.68\textwidth]{feature_correlation.png}
+	\end{center}
+	\caption{Vitals Correlation}
+\end{wrapfigure}
+
+
+
+
+
+
+
 \section{Datasets and Inputs}
 For this study, the MIMIC-III dataset(https://mimic.physionet.org/) will be used. This dataset is freely accessible and suggested for use by Udacity. More than 40,000 individual patient entries will be utilized. 1184 patients were admitted with sepsis and thousands more diagnosed by the end of their stay. Most of the focus will be put on the patients admitted with sepsis since there is an associated time of admittance that will aid in finding more effective treatments. Diagnosis data is tied to ICD-9 billing codes that do not have a time associated.
 
