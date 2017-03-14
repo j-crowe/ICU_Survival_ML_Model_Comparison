@@ -65,7 +65,7 @@ Once input into a Postgres database, there are 20 tables with patient informatio
 Due to the size, variability, and nature of ICU care much of this data must be explored for feasibility in a machine learning model. A good example is blood pressure. While in the MetaVision database, it was standardized with mm/Hg, in the Carevue database that was not the case. It makes the data less useful since information is not standard across different patient entries.
 
 \subsection{Exploratory Visualizations}
-The basic patient information housed within the \textbf{Admissions} table has some potentially useful information. Combining their admission date with their dob we can calculate their age(except patients over 89 due to HIPAA regulations). The visualization of survivability with age is as follows can be observed in figure 1.
+The basic patient information housed within the \textbf{Admissions} table has some potentially useful information. Combining their admission date with their dob we can calculate their age(except patients over 89 due to HIPAA regulations). The visualization of survivability with age is as follows can be observed in \textbf{figure 1}.
 
 \begin{wrapfigure}{r}{0.5\textwidth}
 	\begin{center}
@@ -74,28 +74,41 @@ The basic patient information housed within the \textbf{Admissions} table has so
 	\caption{Age Breakdown}
 \end{wrapfigure}
 
-There is a somewhat noticeable trend in figure 1 with regards to age and survivability of sepsis but it doesn't appear to be anything that an algorithm could rely on strongly. It is important to discover some other useful features.
+There is a somewhat noticeable trend in \textbf{figure 1} with regards to age and survivability of sepsis but it doesn't appear to be anything that an algorithm could rely on strongly. It is important to discover some other useful features.
 
 It may be useful to look at the initial blood tests for feature correlation. Observing all of these blood tests that are correlated with sepsis, the following were had enough datapoints to be useful: bicarbonate, INR, MCH, AST, alkaline phosphatase, PH, creatinine, platelet, PT, PTT, lymphocytes, RBCDW, calcium, neutrophils, glucose, hematocrit, hemoglobin, lactate, BUN, age.
 
-Looking at the feature correlation will allow a better understanding of how the features are correlated with one another as well as which features have a strong or negative correlation to the survivability of sepsis.
+Looking at the feature correlation in \textbf{figure 2} gives a better understanding of how the features are correlated with one another as well as which features have a strong or negative correlation to the survivability of sepsis.
 
 
-\begin{wrapfigure}{r}{0.70\textwidth}
+
+
+There appear to be a few values with very strong correlation such as PTT and INR. PTT, PT, and INR are all used to test for clotting factors in blood so this result is logical. This also means that these features could probably be compressed into fewer dimensions.
+
+\begin{wrapfigure}{l}{0.70\textwidth}
 	\begin{center}
 		\includegraphics[width=0.68\textwidth]{feature_correlation.png}
 	\end{center}
-	\caption{Vitals Correlation}
+	\caption{Patient Vitals Correlation}
 \end{wrapfigure}
 
+Within the 30 day period of mortality, there are none with a positive or negative correlation over +/-0.4 however there are some useful features to consider. Lactate is relatively strongly correlated with ~0.38 with blood urea nitrogen(BUN), and PH not far behind. Lactate is an indication of shock, since lactate is produced by cells that are note receiving enough oxygen. PH is a byproduct of the acidic lactate in the patients blood hence the correlation. Blood urea nitrogen is an indication that the kidneys are failing to process the excess urea in the blood. This can indicate potential kidney damage or failure. All of these are much more useful than age, which is a good sign for our ability to predict.
 
+Finally considering microbiology events. Every infection type is taken and the correlation considered. Though the assumption might be made that infection is strongly correlated with the survivability of sepsis, it is important to note that once a patient is septic, the infection type plays little role. Let us look at number of infections and survivability in \textbf{figure 3}.
 
+\begin{wrapfigure}{r}{0.50\textwidth}
+	\begin{center}
+		\includegraphics[width=0.48\textwidth]{bio_graph.png}
+	\end{center}
+	\caption{Infection Count and Mortality}
+\end{wrapfigure}
 
+There appears to be very little correlation after further observation between survivability and number of infections. With the majority of patients not having an infection discovered within the first 24 hours. Due to this lack of information, the infection type is likely not useful. 
 
-
+These visualizations give some useful insights into the data. One of these insights is that there is nothing that strongly indicates a patient will or will not survive sepsis. Many independent features must be taken into consideration and trends found. Due to this nature of the data, a neural network, or an ensemble technique like adaptive boosting or extreme gradient boosting may prove useful. 
 
 \section{Datasets and Inputs}
-For this study, the MIMIC-III dataset(https://mimic.physionet.org/) will be used. This dataset is freely accessible and suggested for use by Udacity. More than 40,000 individual patient entries will be utilized. 1184 patients were admitted with sepsis and thousands more diagnosed by the end of their stay. Most of the focus will be put on the patients admitted with sepsis since there is an associated time of admittance that will aid in finding more effective treatments. Diagnosis data is tied to ICD-9 billing codes that do not have a time associated.
+For this study, the MIMIC-III dataset will be used. This dataset is freely accessible and suggested for use by Udacity. More than 40,000 individual patient entries will be utilized. 1184 patients were admitted with sepsis and thousands more diagnosed by the end of their stay. Most of the focus will be put on the patients admitted with sepsis since there is an associated time of admittance that will aid in finding more effective treatments. Diagnosis data is tied to ICD-9 billing codes that do not have a time associated.
 
 It was required to take a short course to gain access to this data by demonstrating some understanding of law and ethics in dealing with this de-identified dataset.
 

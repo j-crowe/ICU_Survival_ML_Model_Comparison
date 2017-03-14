@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  13 MAR 2017 16:32
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  13 MAR 2017 17:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -550,25 +550,55 @@ Package pdftex.def Info: age.png used on input line 72.
 File: feature_correlation.png Graphic file (type png)
 
 <use feature_correlation.png>
-Package pdftex.def Info: feature_correlation.png used on input line 86.
+Package pdftex.def Info: feature_correlation.png used on input line 90.
 (pdftex.def)             Requested size: 319.42996pt x 240.32161pt.
-
-
-Package wrapfig Warning: Stationary wrapfigure forced to float on input line 97
-.
-
-[3 <./age.png>]
-Overfull \hbox (67.6007pt too wide) in paragraph at lines 98--99
-\OT1/cmr/m/n/10.95 III dataset(https://mimic.physionet.org/)
+ [3 <./age.png>]
+Underfull \hbox (badness 4454) in paragraph at lines 95--96
+\OT1/cmr/m/n/10.95 riod of mor-tal-ity, there
  []
 
-[4 <./feature_correlation.png>] [5] [6] (./sepsis.bbl
+
+Underfull \hbox (badness 3009) in paragraph at lines 95--96
+\OT1/cmr/m/n/10.95 sider. Lac-tate is rel-a-
+ []
+
+
+Underfull \hbox (badness 2680) in paragraph at lines 95--96
+\OT1/cmr/m/n/10.95 tively strongly cor-re-lated
+ []
+
+
+Underfull \hbox (badness 5345) in paragraph at lines 95--96
+\OT1/cmr/m/n/10.95 with  0.38 with blood
+ []
+
+
+Underfull \hbox (badness 2027) in paragraph at lines 95--96
+\OT1/cmr/m/n/10.95 urea ni-tro-gen(BUN), and
+ []
+
+
+Underfull \hbox (badness 2837) in paragraph at lines 95--96
+\OT1/cmr/m/n/10.95 tate is an in-di-ca-tion of
+ []
+
+
+Underfull \hbox (badness 2707) in paragraph at lines 95--96
+\OT1/cmr/m/n/10.95 duced by cells that are
+ []
+
+<bio_graph.png, id=24, 395.3169pt x 290.5254pt>
+File: bio_graph.png Graphic file (type png)
+ <use bio_graph.png>
+Package pdftex.def Info: bio_graph.png used on input line 101.
+(pdftex.def)             Requested size: 225.4804pt x 165.70758pt.
+ [4 <./feature_correlation.png> <./bio_graph.png>] [5] [6] (./sepsis.bbl
 Overfull \hbox (10.12932pt too wide) in paragraph at lines 4--7
 []\OT1/cmr/m/n/10.95 C. for Dis-ease Con-trol, ``Sep-sis data re-port.'' https:
 //www.cdc.gov/sepsis/datareports/index.html,
  []
 
-
+[7]
 Underfull \hbox (badness 10000) in paragraph at lines 15--19
 []\OT1/cmr/m/n/10.95 A. Ku-mar, ``Du-ra-tion of hy-poten-sion be-fore ini-ti-a-
 tion of ef-fec-tive an-timi-cro-
@@ -580,12 +610,12 @@ Underfull \hbox (badness 10000) in paragraph at lines 15--19
 in hu-man sep-tic shock..''
  []
 
-) [7] (./sepsis.aux) ) 
+) [8] (./sepsis.aux) ) 
 Here is how much of TeX's memory you used:
- 13388 strings out of 493014
- 260728 string characters out of 6133351
+ 13393 strings out of 493014
+ 260812 string characters out of 6133351
  321534 words of memory out of 5000000
- 16675 multiletter control sequences out of 15000+600000
+ 16679 multiletter control sequences out of 15000+600000
  9709 words of font info for 35 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  55i,6n,54p,880b,259s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -595,10 +625,10 @@ fonts/cm/cmbx12.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsf
 onts/cm/cmr10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfon
 ts/cm/cmr12.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmr17.pfb>
-Output written on sepsis.pdf (7 pages, 397494 bytes).
+Output written on sepsis.pdf (8 pages, 412537 bytes).
 PDF statistics:
- 56 PDF objects out of 1000 (max. 8388607)
- 37 compressed objects within 1 object stream
+ 61 PDF objects out of 1000 (max. 8388607)
+ 39 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 23 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 28 words of extra memory for PDF output out of 10000 (max. 10000000)
 
