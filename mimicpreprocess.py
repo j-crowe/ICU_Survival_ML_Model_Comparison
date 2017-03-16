@@ -105,9 +105,18 @@ class DataHandler(object):
                 day_results = sub_group[((sub_group.charttime - admittance_time) < one_day)]
                 if len(day_results['valuenum'].values) == 0:
                     mean = np.nan
+                    maximum = np.nan
+                    minimum = np.nan
                 else:
                     mean = day_results['valuenum'].values.mean()
+
+                    maximum = day_results['valuenum'].values.max()
+                    minimum = day_results['valuenum'].values.min()
+
                 patient_vitals.set_value(hadm_id, self.vital_ids[lab_item], mean)
+
+                # patient_vitals.set_value(hadm_id, self.vital_ids[lab_item] + '_max', maximum)
+                # patient_vitals.set_value(hadm_id, self.vital_ids[lab_item] + '_min', minimum)
 
     def admissions_query(self):
         """Query and calculate period of interest for mortality. Append to df"""
@@ -137,8 +146,17 @@ class DataHandler(object):
         for value in self.vital_ids.values():
             patient_vitals[value] = np.nan
 
+            # patient_vitals[value + "_max"] = np.nan
+            # patient_vitals[value + "_min"] = np.nan
+
 
         patient_vitals = patient_vitals.set_index('hadm_id')
 
         self.acquire_vitals(lab_events, patient_vitals, patient_info)
         return patient_vitals
+
+    def prior_hospital_stays(self, patient_info):
+        patient_ids = patient_info.subject_id.tolist()
+        patient_hadm_ids = patient_info.hadm_id.tolist()
+
+        had_id_tuple_list = zip(patient_ids, patient_hadm_ids)
