@@ -156,7 +156,21 @@ class DataHandler(object):
         return patient_vitals
 
     def prior_hospital_stays(self, patient_info):
+
         patient_ids = patient_info.subject_id.tolist()
         patient_hadm_ids = patient_info.hadm_id.tolist()
 
-        had_id_tuple_list = zip(patient_ids, patient_hadm_ids)
+        hadm_id_tuple_list = zip(patient_ids, patient_hadm_ids)
+
+        prior_visits_query = self.session.query(self.Admission).filter(self.Admission.subject_id.in_(patient_ids))
+        prior_visits = pd.read_sql(prior_visits_query.statement, prior_visits_query.session.bind).groupby('subject_id')
+
+        patient_info['prior'] = np.nan
+
+        for patient_id, group in prior_visits:
+            patient_admissions = [item for item in hadm_id_tuple_list if item[0] == patient_id]
+
+            for item in patient_admissions:
+                admit_time = group.loc[group['hadm_id'] == item[1]].iloc[0]['admittime']
+                priors = len(group[(group['admittime'] < admit_time)])
+                patient_info.loc[patient_info.hadm_id == item[1], 'prior'] = priors
