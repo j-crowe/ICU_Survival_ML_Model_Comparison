@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  17 MAR 2017 18:38
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  18 MAR 2017 15:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -604,7 +604,14 @@ uilt in func-tion-al-ity of $\OML/cmm/m/it/10.95 pandas:get[]dummies\OT1/cmr/m/
 n/10.95 (\OML/cmm/m/it/10.95 df\OT1/cmr/m/n/10.95 )$. 
  []
 
-[8] [9] [10] (./sepsis.bbl
+<feature_correlation_2.png, id=40, 426.393pt x 281.853pt>
+File: feature_correlation_2.png Graphic file (type png)
+
+<use feature_correlation_2.png>
+Package pdftex.def Info: feature_correlation_2.png used on input line 203.
+(pdftex.def)             Requested size: 225.4804pt x 149.04591pt.
+ [8 <./feature_correlation_2.png>] [9] [10]
+(./sepsis.bbl
 Overfull \hbox (10.12932pt too wide) in paragraph at lines 4--7
 []\OT1/cmr/m/n/10.95 C. for Dis-ease Con-trol, ``Sep-sis data re-port.'' https:
 //www.cdc.gov/sepsis/datareports/index.html,
@@ -624,13 +631,13 @@ in hu-man sep-tic shock..''
 
 ) [11] (./sepsis.aux) ) 
 Here is how much of TeX's memory you used:
- 13393 strings out of 493014
- 260812 string characters out of 6133351
- 320534 words of memory out of 5000000
- 16679 multiletter control sequences out of 15000+600000
+ 13398 strings out of 493014
+ 260956 string characters out of 6133351
+ 321534 words of memory out of 5000000
+ 16683 multiletter control sequences out of 15000+600000
  9709 words of font info for 35 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,6n,54p,881b,247s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,6n,54p,881b,263s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2016/texmf-dist/fonts/type1/public/a
 msfonts/cm/cmbx10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/am
 sfonts/cm/cmbx12.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/ams
@@ -639,10 +646,10 @@ onts/cm/cmr10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfon
 ts/cm/cmr12.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmr17.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/c
 m/cmsy10.pfb>
-Output written on sepsis.pdf (11 pages, 446418 bytes).
+Output written on sepsis.pdf (11 pages, 468084 bytes).
 PDF statistics:
- 78 PDF objects out of 1000 (max. 8388607)
+ 80 PDF objects out of 1000 (max. 8388607)
  51 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 28 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 33 words of extra memory for PDF output out of 10000 (max. 10000000)
 

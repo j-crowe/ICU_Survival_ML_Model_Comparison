@@ -145,7 +145,7 @@
 	
 	\section{Methodology}
 	\subsection{Data Preprocessing}
-	Preprocessing the data is the most challenging and time consuming step of this process. The following steps were taken:
+	Preprocessing the data is the most challenging and time consuming step of this process. All pre-processing and visualization was initially done in the Jupyter notebook titled \textbf{Septic Feature Probe.ipynb} and later all preprocessing is done again the in the final model comparison analysis in the Jupyter notebook titled \textbf{Sepsis Model Comparison.ipynb} along with the helper python file \textbf{mimicpreprocess.py}. The following steps were taken to preprocess the data:
 	
 		\subsubsection{Acquire the Dataset}
 		The MIMIC-III dataset is openly available and developed by the MIT Lab for Computational Physiology. It first requires certification to handle de-identified medical information. The data is provided in CSV files, with each file representing a table in a database. The CSVs were then processed and imported into respective tables in a PostgreSQL database.
@@ -196,98 +196,81 @@
 		Certain machine learning algorithms might behave poorly if individual features do not more or less look like standard normally distributed data. A feature that is naturally much higher could smother the naturally smaller values in the prediction. This is not always the case but it is a good idea to standardize all data to prevent such an error. This moves the mean to zero. The operation is easily done by fitting data to \(sklearn.preprocessing.StandardScaler()\).
 		
 		\subsubsection{Feature Selection}
+		There are many features that may be of little use when predicting the survivability of sepsis. The more irrelevant features that exist, the more data is required to ensure they do not fit to noise in those features. It is important to remove the features that are of little use. 
 		
-			
-	\section{Datasets and Inputs}
-	For this study, the MIMIC-III dataset will be used. This dataset is freely accessible and suggested for use by Udacity. More than 40,000 individual patient entries will be utilized. 1184 patients were admitted with sepsis and thousands more diagnosed by the end of their stay. Most of the focus will be put on the patients admitted with sepsis since there is an associated time of admittance that will aid in finding more effective treatments. Diagnosis data is tied to ICD-9 billing codes that do not have a time associated.
+		\begin{wrapfigure}{l}{0.50\textwidth}
+			\begin{center}
+				\includegraphics[width=0.48\textwidth]{feature_correlation_2.png}
+			\end{center}
+			\caption{Feature Correlation Graph}
+		\end{wrapfigure}
+		
+		Feature correlation was calculated and it was observed that the infection type was of little correlation to the survivability of sepsis. The existence of any infection was of little use in predicting survivability as well, therefore these features were dropped from the dataset.
+		
+		With the remaining features, a random forest was trained and the resulting feature importances graphed in \textbf{figure 4}.
+		
 	
-	It was required to take a short course to gain access to this data by demonstrating some understanding of law and ethics in dealing with this de-identified dataset.
+		As can be seen in \textbf{figure 4}, gender, insurance type, and admission type are of little use when predicting survivability. For most algorithms, this data will be dropped. For the neural network, it may be included since more complex relationships could be developed between the features.
 	
-	The data was downloaded locally as CSV files. The provided conversion scripts were modified to load the entries into the remote Amazon RDS Postgres database. This database and server is secured and is HIPAA compliant. An Amazon compute EC2 instance was also spun up to do most of the heavy lifting. Many of the tables from the database will be used but the most critical are the following:
+		The important features have been discovered and now machine learning models can be trained on this cleaned and standardized data.
+	
+	\subsection{Implementation}
+	Four different machine learning algorithms were implemented and trained therefor four different processes were required to develop them. All work can be seen in the Jupyter notebook titled \textbf{Sepsis Model Comparison.ipynb} along with the helper python file \textbf{mimicpreprocess.py}. Prior to any models being developed, the data must be loaded into a pandas dataframe and preprocessed as described in the previous section.
+	
+	\subsubsection{Support Vector Machine}
+		Most of the SciKitLearn machine learning algorithms tend to be quite easy to set up and run, much more so than XGBoost or a Neural Network. SVMs should, in theory, work great with this dataset due to its size and complexity. The process is as follows:
+		
 	\begin{enumerate}
-		\item \textbf{admissions}: the admissions table provides basic patient information on admission including the initial diagnosis, sex, insurance type, etc.
-		\item \textbf{diagnoses\_icd}: this table provides all diagnoses assigned to a patient during a hospital stay. Unfortunately, this is assigned at the end and cannot be given a time of diagnosis. A sequence is provided, however.
-		\item \textbf{microbiologyevents}: this table provides information about whether or not an infection is present, how it was obtained, and when.
-		\item \textbf{labevents}: this provides measurements such as blood pressure, and information from blood tests.
-		\item \textbf{prescriptions}: drugs given to patient along with the time and amount.
-		\item \textbf{patients}: this provides basic information about the patient including date of birth, date of death (if applicable), gender, etc.
+		\item \textbf{Define Model:} A model is defined with a random state in order to reproduce the results and the type of kernel, \textbf{rbf}.
+		\item \textbf{Define Parameters:} A parameter grid defines several important hyperparameters to test. They are as follows:
+		\begin{enumerate}
+			\item \textbf{C:} The C hyperparameter controls the smoothness of the decision boundary by telling the SVM  how much you want to avoid misclassification. Large C will cause the optimizer to find a larger margin separating the hyperplane while small C will result in a larger margin separating the hyperplane at the expense of misclassifying points.
+			\item \textbf{gamma:} gamma controls how many support vectors are used in placing said decision boundary. When gamma is very small, the model can be too constrained and is unable to capture the complexity of the data. However if gamma is too high, the model will fit to noise to few support vectors.
+		\end{enumerate}
+		\item \textbf{Grid Search:} Due to the size of the hyperparameter test set, GridSearchCV is used to iterate over every possible combination of parameters in the param\_grid. Note that \textbf{stratified k-fold} cross validation is used with 10 folds total. 
+	\end{enumerate}	
+
+	\subsubsection{Adaptive Boosting}
+		The AdaBoost model implementation is as follows:
+		\begin{enumerate}
+			\item \textbf{Define a Base Estimator:} The base estimator is what AdaBoost boosts. It is a very important selection. In order to make the algorithm generalizable and prevent overfitting, a decision stump (1d decision tree) is selected and defined as the base estimator.
+			\item \textbf{Define Model:} A model is defined with a random state in order to reproduce the results and the decision stump as the base estimator.
+			\item \textbf{Define Parameters:} The adaboost parameter grid is defined as follows: 
+			\begin{enumerate}
+				\item  \textbf{n\_estimators:} n\_estimators controls the max number of estimators at which boosting is terminated. The more estimators, the more complex the model, so it is important to look for a reasonable number and signs of overfitting.
+				\item \textbf{learning\_rate:} The learning rate shrinks the contribution of each classifier. If the learning rate is too large, the optimal solution can be missed. If too small, too many iterations may be required. There is a tradeoff between the number of estimators and the learning rate.
+			\end{enumerate}
+			\item \textbf{Random Search:} Due to the size of the hyperparameter test set, RandomSearchCV is used to iterate randomly over the possible combinations of parameters in the param\_grid. Note that \textbf{stratified k-fold} cross validation is used with 10 folds total. Random search is used here instead of grid search since the number of hyperparameters that are being tested is much larger and in practice works nearly as well with a reasonable number of iterations. In this case 100 iterations were done.
+		\end{enumerate}	
+	
+	While Adaboost may seem like a relatively complex algorithm, the most complex task is selecting a solid base estimator. There are few hyperparameters to tune and better performance comes from manipulating the data to work optimally with such an algorithm.
+	
+	\subsubsection{Extreme Gradient Boosting}
+		Extreme gradient boosting is slightly more complex to implement than the previous models. The XGBoost python library will be used due to it's performance and community support. The model implementation is as follows:
+		
+		\begin{enumerate}
+			\item \textbf{Define Model:} A model is defined with the \textbf{objective = binary:logistic}. binary:logistic is for binary classification, it returns predicted probability not the class.
+			\item \textbf{Define Parameters:} There are more parameters to test in XGBoost than in the previous algorithms, they are as follows:
+			\begin{enumerate}
+				\item \textbf{max\_depth:} max\_depth represents the maximum depth of a tree. Higher values will lead to a more complex model but also has the potential to fit to noise in the dataset. A typical value is between 3 and 10.
+				
+				This value can have large ramifications since XGBoost makes splits upto the max\_depth then start pruning the tree backwards and remove splits which there is no positive gain.
+				\item \textbf{gamma:} gamma represents the minimum loss reduction required to further partition on a leaf node. The larger the value, the more conservative the algorithm. 
+				
+				It is important to note that the values of gamma can vary depending on the loss function and therefore should be tuned.
+				\item \textbf{min\_child\_weight:} min\_child\_weight is the minimum sum of instance weight required in a child node. If a tree partition step results in a child weight less than the minimum, the building process will halt further partitioning. 
+				
+				The minimum child weight has high impacts on the model outcome and therefore must be heavily tuned.
+				\item \textbf{n\_estimators:} n\_estimators represents the number of trees to be boosted by the XGBoost model. More trees can increase complexity and potential for overfitting so ensuring a reasonable value is tuned is important.
+				\item \textbf{learning\_rate:} The learning\_rate or eta is the step size shrinkage used in update to prevents overfitting. After each boosting step the eta will shrink the feature weights to make the algorithm more conservative and reduce the likelyhood of overfitting. 
+			\end{enumerate}
+			\item \textbf{Randomized Search:} Due to the size of the hyperparameter test set, RandomizedSearchCV is used to iterate over randomly the possible combinations of parameters in the param\_grid. Note that \textbf{stratified k-fold} cross validation is used with 10 folds total. 
 	\end{enumerate}
+
+	It can be seen that many of the hyperparameters that are being tuned have significant interaction and play between one another. XGBoost provides many "knobs" to increase and decrease model complexity while allowing granular selections to reduce the probability of overfitting. XGBoost is complex and quite powerful due to this flexibility.
 	
-	In this supervised learning problem, the target attribute must be calculated from the provided information. The goal is to predict survivability within 30 days of admittance. Within the patient table exists a date of death (dod), if applicable, that can be used along with admittance date to calculate the boolean survivability target attribute.
-	
-	
-	\section{Solution}
-	The solution to is to categorizing patients by survivability at admittance. This is calculated by considering: speed of first antibiotic dose, the age of the patient, type of infection, respiratory rate, blood pressure, creatinine levels, and lactate levels. A supervised learning model will be trained off of this information along with the calculated target value, which is the patient survival over 30 days from admittance.
-	
-	As the project progresses it may require me to include more complex information such as blood pressure measurements and categorical data about whether vasopressors were used to combat low bp and more.
-	Multiple models using different techniques will be developed, analyzed and a comparative analysis between them will be done with the best performing and most generalizable solution being selected.
-	
-	\section{Benchmark}
-	There are few studies into the predictability of patient survival from severe sepsis. There are also many factors that are important in how the prediction is made. I will be focusing on the following research: ``Predicting survival of patients with sepsis by use of regression and neural network models'' by J.R. Flanagan, et al. 
-	\begin{quotation}
-		``Survival after sepsis was predicted with an accuracy of 80\% by the NN model, which used only information collected at the time of the diagnosis of sepsis. The development of multiple organ failure after the diagnosis of sepsis was predicted accurately (81.5\%) with either the MLR or the NN model. Both the MLR and the NN methods depended on the interpretation of a likelihood quantity, requiring the choice of a threshold to make a survival prediction. ''\cite{sepsisresearch}
-	\end{quotation}
-	
-	While this study was done in 1996, there have been few follow-up studies. The few follow-up studies had a similar success rate with slightly different attributes and test periods. Due to the detail of this study, most focus will be put on the work of Flanagan et al. for the benchmark.
-	
-	\section{Evaluation}
-	The evaluation metric that will be used to quantify the performance of both the benchmark model and the solution model will be classification accuracy. The benchmark study by J.R. Flanagan, et al. details the classification accuracy of septic patient survival over a one month period. This is the approach that will be used in the solution model. The results of the solution model and that of the benchmark will finally be compared. Several different solution models will be designed and compared in order to see the difference in accuracy in a complex feature set such as this.
-	
-	Using standard classification accuracy is a great metric for quantifying performance. While the feature set is highly complex, the target attribute is boolean and easily assessed. Therefore computing the model's accuracy at classifying patients by boolean survivability is accurate, simple, and understandable.
-	
-	\section{Design}
-	Due to the nature of the problem and the relatively large number of features that will likely be involved, the results from the following models will be compared: multi-layer neural network, Adaboost with a decision stump as its base estimator, decision forests, and extreme gradient boosting.
-	
-	The data is spread across multiple database tables. For most algorithms, a large single entry per patient will be formed from this data. For reusability, a new table with this joined information will be created.
-	
-	\begin{enumerate}	
-		
-		\item Explore data structures:
-		\begin{enumerate}
-			\item Download the sample dataset, 100 patients, from physionet.org
-			\item Load data into Postgres database locally
-			\item Explore the data for useful trends, table structure, and layouts using DBVisualizer. Allows graphical exploration of data.
-		\end{enumerate}
-		
-		\item Set up full database:
-		
-		\begin{enumerate}
-			\item Download entire compressed CSV dataset from physionet.org (30GB)
-			\item Spin up an Amazon RDS Postgres database and EC2 Compute instance.
-			\item Modify provided scripts from the MIMIC-III MIT Github repository to load data into the remote RDS Postgres database
-			\item Set up docker with all necessary components including SQL alchemy for easy querying and object handling using its ORM.
-		\end{enumerate}
-		
-		\item Restructure data for use in ML model:
-		
-		\begin{enumerate}
-			\item Create new DB sepsis table w/ one entry per patient hospital stay
-			\item Gather useful attributes across multiple tables by patient ID and/or hospital stay ID
-			\item Fields will contain the following (Likely will change): ID, Gender, Age (calculated), infection type, antibiotic treatment, time until first dose (calculated), blood lactate levels(first measurement), creatinine levels(first measurement), respiratory rate(first measurement), etc.
-		\end{enumerate}
-		
-		
-		\item Develop ML models:
-		
-		\begin{enumerate}
-			\item Develop and test multi-layer neural network in TensorFlow and/or Keras.
-			\item Develop and test extreme gradient boosting using XGBoost
-			\item Develop and test Adaboost w/ decision stumps as base estimator
-			\item Develop and test random forest
-		\end{enumerate}
-		
-		\item Run ML models remotely:
-		
-		\begin{enumerate}
-			\item Spin up docker container on EC2 compute instance
-			\item Pull code from repo
-			\item Run ML models and save output logs
-		\end{enumerate}
-		
-		\item Compare results and tweak hyperparameters for better results
-		\item Analyze and write up results
-	\end{enumerate}
-	
+	\subsubsection{Neural Network}
+	An artificial neural network is the most complex machine learning algorithm that is being used in this project. Much of its flexibility is due the fact that the general architecture must be designed instead of simple hyperparameter tuning and data manipulation. The 
 	
 	\bibliography{citations}{}
 	\bibliographystyle{ieeetr}
