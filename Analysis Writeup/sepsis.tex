@@ -224,7 +224,7 @@
 		\item \textbf{Define Model:} A model is defined with a random state in order to reproduce the results and the type of kernel, \textbf{rbf}.
 		\item \textbf{Define Parameters:} A parameter grid defines several important hyperparameters to test. They are as follows:
 		\begin{enumerate}
-			\item \textbf{C:} The C hyperparameter controls the smoothness of the decision boundary by telling the SVM  how much you want to avoid misclassification. Large C will cause the optimizer to find a larger margin separating the hyperplane while small C will result in a larger margin separating the hyperplane at the expense of misclassifying points.
+			\item \textbf{C:} The C hyperparameter controls the smoothness of the decision boundary by telling the SVM  how much you want to avoid misclassification. Large C will cause the optimizer to find a smaller margin separating the hyperplane while small C will result in a larger margin separating the hyperplane at the expense of misclassifying points.
 			\item \textbf{gamma:} gamma controls how many support vectors are used in placing said decision boundary. When gamma is very small, the model can be too constrained and is unable to capture the complexity of the data. However if gamma is too high, the model will fit to noise to few support vectors.
 		\end{enumerate}
 		\item \textbf{Grid Search:} Due to the size of the hyperparameter test set, GridSearchCV is used to iterate over every possible combination of parameters in the param\_grid. Note that \textbf{stratified k-fold} cross validation is used with 10 folds total. 
@@ -334,8 +334,80 @@
 	
 	In the final version, 3 hidden layers are present, dropout layers were added, a kernel constraint was added, additional data features were considered including gender, the number of nodes were iteratively increased and decreased per layer resulting in a much more robust model. This resulted in an increased accuracy at \textbf{85.8\%} on the 77-80th epoch. This is quite an impressive score compared to the benchmark and other models tested here.
 	
-	It is important to note that this accuracy was selected from the optimal section of hundreds of epochs. Due to the nature of machine learning algorithms each running resulted in different accuracy scores.
+	It is important to note that this accuracy was selected from the optimal section of hundreds of epochs. Due to the nature of neural networks each running resulted in different accuracy scores.
 	
+	\section{Results}
+	\subsection{Model Evaluation and Validation}
+	During development stratified k-fold cross validation was used internally inside GridsearchCV and RandomizedSearchCV. The exception to this was the neural network that used a train(0.77) test(0.33) split. This was done due to the size of the dataset. With an already small dataset with even smaller batch sizes, strange performance issues were seen so the batch size was increased and k-fold CV was not used for a standard train/test split.
+	
+	Most of the discussion will be on the architecture of the NN but the following will show the final selected hyperparameters in all models that performed best among the attempted combinations.
+	
+	\subsubsection{Support Vector Machine}
+	While SVMs did not perform as well as the other models, the parameter selection that worked best was:
+	
+	\begin{enumerate}
+		\item \textbf{C:} 1000 - while the default value for C is 1, this is a reasonable selection. There are instances where a much higher C value and thus a smaller margin are useful.
+		\item \textbf{gamma:} 0.001 - this value of gamma also seems reasonable. It is not extremely small resulting in a model that is too constrained but it is a conservative value.
+	\end{enumerate}
+	
+	\subsubsection{Adaptive Boosting}
+	Adaboost performed better than the SVM which was somewhat surprising. The hyperparameter selection was reasonable after RandomizedSearchCV, they were:
+
+	\begin{enumerate}
+		\item \textbf{n\_estimators:} 32 - This is a very conservative number of estimators but is logical consider the feature space and the size of the dataset. The default value is 50. If it was much higher, overfitting would be a likely concern.
+		\item \textbf{learning\_rate:} 0.218 - This is also a conservative number for the learning rate considering the default value is 1. Both the number of estimators and learning rate was likely throttled to compensate for the relatively small feature set and data set while having a more complex base estimator than a decision stump.
+	\end{enumerate}
+	\subsubsection{Extreme Gradient Boosting}
+	XGBoost hyperparameter selection becomes more complicated to analyze due to the complexity of the algorithm. The hyperparameter selection is as follows:
+	
+	\begin{enumerate}
+		\item \textbf{n\_estimators:} 66 - With a default of 100, a conservative value.
+		\item \textbf{gamma:} 8 - With a default of 1, this is also conservative. The larger the gamma, the more conservative the algorithm will be. 
+		\item \textbf{learning\_rate} 0.2 - With a default of 0.3, this appears to be a conservative learning rate. This was likely selected due to reduce observed overfitting.
+		\item \textbf{max\_depth} 13 - With a default of 3, a max depth allows for some increased model complexity to compensate for the conservative number of estimators, gamma, and learning rate.
+		\item \textbf{min\_child\_weight} 6 - with a default of 1, again a conservative value. A somewhat high minimum child weight is required otherwise partitioning is halted.
+	\end{enumerate}
+	
+	Observing the selected hyperparameters for XGBoost suggests that cross validation was struggling to select parameters that increased model accuracy while preventing overfitting. This can be seen through the conservative selection of hyperparameters. 
+	\subsubsection{Neural Network}
+	The Neural network was the most complex system to set up and tune and required much more manual tweaking than the previous algorithms. The general architecture can be seen in \textbf{figure 5} in the previous section. The resulting architecture that was selected is as follows:
+	
+	\begin{enumerate}
+		\item There are 5 densely connected layers of the neural network with 3 hidden layers. The number of neurons in each layer, sequentially is as follows: \textbf{ 125, 50, 20, 10, 1}. A somewhat deep neural network with decreasing neuron count was selected in order to aid in finding more complex relationships between the features that other machine learning models may be incapable of learning.
+		\item Each densely connected layer, aside from the input and output layers, has a maximum-norm kernel constraint of 3 to fight data memorization. The kernel constraint value was selected through iterative tested.
+		\item Between each densely connected layer is a dropout layer with a dropout value of \textbf{0.5}, which results in 50\% of randomly selected neurons being "dropped" or ignored during training. This helps fight complex co-adaptations among neurons, reduces the fragility of a highly specialized model, and reduces overfitting. 0.5 on all layers is somewhat high and was found to increase performance and delay overfitting significantly.
+		\item The only loss function that made sense for this specific NN application was  \textbf{binary\_crossentropy}.
+		\item Several different optimizers were tested but the most stable in this application was \textbf{rmsprop}. There is no evidence suggesting that it would perform better in this case rather than others however.
+		\item The selected metrics that are tested for are \textbf{accuracy}.
+		\item 500 epochs are run with a batch size of 128. With an approximate input size of 1200, around 4687 iterations are executed during the learning process.
+	\end{enumerate}
+
+	\begin{wrapfigure}{r}{0.50\textwidth}
+		\begin{center}
+			\includegraphics[width=0.48\textwidth]{ml_accuracy_loss.png}
+		\end{center}
+		\caption{NN Accuracy and Loss Graph by Epoch}
+	\end{wrapfigure}
+
+	To verify the robustness and ensure that data memorization is not occurring in the epochs chosen for our optimized model, the model accuracy and loss are graphed separating training and testing results. \textbf{Figure 6} shows the model accuracy along with model loss by epoch.
+	
+	Comparing the model accuracy to the model loss graph is becomes apparent that data memorization gradually occurs as the testing accuracy climbs towards 100\%. At around epoch 150, training accuracy has surpassed testing accuracy and steadily increases all 500 epochs. Model loss is a good indication of overfitting as well. We can see that the testing loss flattens around 50-100 and surpasses training loss at around epoch 100. It is important that the the model cuts off training before 100 epochs to reduce overfitting and minimize loss. 
+	
+	The epochs with the highest accuracy are: \textbf{77-80}. This is a sweet spot and indicates at this point the mode has not begun to overfit so is generalizable but also highly accurate.
+
+	
+	\subsection{Justification}
+	
+	A multi-layered neural network built with Keras using a TensorFlow backend resulted in a highly accurate model that outperformed the benchmark by \textbf{7.3\%} at an accuracy of \textbf{85.8\%}. The results are promising but it is important to note several limitations to the outcome of this model comparison study. 
+	
+	The dataset is small at around 1200 patient entries. To obtain a more reliable results a dataset of several hundred thousand patients would be necessary. The nature of medical data is sparse, with high variability. The largest problem in dealing with this data was smoothing over irregularities, and swathes of missing and highly important features.
+	
+	While the results are impressive for primarily looking at around 20 features, there are many features that would have been highly useful and possibly more valuable if they could have been properly processed. Respiration rate is one feature that was unusable to to the state in which the two original sources saved the data.
+	
+	To reiterate, it is important to note that this study's purpose was to gauge accuracy in order to stratify patients for further analysis and study. No model here would be useful or safe to use in a real application. Predicting a false negative could result in a patient being treated improperly or killed. That is why this is only currently useful for retrospective studies and patient stratification.
+	
+	In summary, the application is useful in a very limited use case. It outperformed previous studies using similar methods but due to the prioritization of accuracy over reducing false positives it only is applicable in studying data trends.
+		
 	\bibliography{citations}{}
 	\bibliographystyle{ieeetr}
 	
