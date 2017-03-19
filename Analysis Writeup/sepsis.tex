@@ -191,7 +191,7 @@
 		\subsubsection{Standardizing Features}
 		Now the data is more or less usable but each column contains multi-categorical data or numerical data in different units.
 		
-		Categorical data is converted into one-hot features where each category has its own column with it being hot or not. This task is made easy with Pandas' built in functionality of \(pandas.get\_dummies(df)\).
+		Categorical data is converted into one-hot features where each category has its own column with it on or off. This task is made easy with Pandas' built in functionality of \(pandas.get\_dummies(df)\).
 		
 		Certain machine learning algorithms might behave poorly if individual features do not more or less look like standard normally distributed data. A feature that is naturally much higher could smother the naturally smaller values in the prediction. This is not always the case but it is a good idea to standardize all data to prevent such an error. This moves the mean to zero. The operation is easily done by fitting data to \(sklearn.preprocessing.StandardScaler()\).
 		
@@ -215,7 +215,7 @@
 		The important features have been discovered and now machine learning models can be trained on this cleaned and standardized data.
 	
 	\subsection{Implementation}
-	Four different machine learning algorithms were implemented and trained therefor four different processes were required to develop them. All work can be seen in the Jupyter notebook titled \textbf{Sepsis Model Comparison.ipynb} along with the helper python file \textbf{mimicpreprocess.py}. Prior to any models being developed, the data must be loaded into a pandas dataframe and preprocessed as described in the previous section.
+	Four different machine learning algorithms were implemented and trained therefor four different processes were required to develop them. All work can be seen in the Jupyter notebook titled \textbf{Sepsis Model Comparison.ipynb} along with the helper python file \textbf{mimicpreprocess.py}. Prior to any models developed, the data must be loaded into a pandas dataframe and preprocessed as described in the previous section.
 	
 	\subsubsection{Support Vector Machine}
 		Most of the SciKitLearn machine learning algorithms tend to be quite easy to set up and run, much more so than XGBoost or a Neural Network. SVMs should, in theory, work great with this dataset due to its size and complexity. The process is as follows:
@@ -240,7 +240,7 @@
 				\item  \textbf{n\_estimators:} n\_estimators controls the max number of estimators at which boosting is terminated. The more estimators, the more complex the model, so it is important to look for a reasonable number and signs of overfitting.
 				\item \textbf{learning\_rate:} The learning rate shrinks the contribution of each classifier. If the learning rate is too large, the optimal solution can be missed. If too small, too many iterations may be required. There is a tradeoff between the number of estimators and the learning rate.
 			\end{enumerate}
-			\item \textbf{Random Search:} Due to the size of the hyperparameter test set, RandomSearchCV is used to iterate randomly over the possible combinations of parameters in the param\_grid. Note that \textbf{stratified k-fold} cross validation is used with 10 folds total. Random search is used here instead of grid search since the number of hyperparameters that are being tested is much larger and in practice works nearly as well with a reasonable number of iterations. In this case 100 iterations were done.
+			\item \textbf{Random Search:} Due to the size of the hyperparameter test set, RandomSearchCV is used to iterate randomly over the possible combinations of parameters in the param\_grid. Note that \textbf{stratified k-fold} cross validation is used with 10 folds total. Random search is used here instead of grid search since the number of hyperparameters that are tested is much larger and in practice works nearly as well with a reasonable number of iterations. In this case 100 iterations were done.
 		\end{enumerate}	
 	
 	While Adaboost may seem like a relatively complex algorithm, the most complex task is selecting a solid base estimator. There are few hyperparameters to tune and better performance comes from manipulating the data to work optimally with such an algorithm.
@@ -267,10 +267,74 @@
 			\item \textbf{Randomized Search:} Due to the size of the hyperparameter test set, RandomizedSearchCV is used to iterate over randomly the possible combinations of parameters in the param\_grid. Note that \textbf{stratified k-fold} cross validation is used with 10 folds total. 
 	\end{enumerate}
 
-	It can be seen that many of the hyperparameters that are being tuned have significant interaction and play between one another. XGBoost provides many "knobs" to increase and decrease model complexity while allowing granular selections to reduce the probability of overfitting. XGBoost is complex and quite powerful due to this flexibility.
+	It can be seen that many of the hyperparameters that are tuned have significant interaction and play between one another. XGBoost provides many "knobs" to increase and decrease model complexity while allowing granular selections to reduce the probability of overfitting. XGBoost is complex and quite powerful due to this flexibility.
 	
 	\subsubsection{Neural Network}
-	An artificial neural network is the most complex machine learning algorithm that is being used in this project. Much of its flexibility is due the fact that the general architecture must be designed instead of simple hyperparameter tuning and data manipulation. The 
+	
+	\begin{wrapfigure}{r}{0.50\textwidth}
+		\begin{center}
+			\includegraphics[width=0.48\textwidth]{diagram.png}
+		\end{center}
+		\caption{Keras Neural Network Flow}
+	\end{wrapfigure}
+
+	An artificial neural network is the most complex machine learning algorithm that is used in this project. Much of its flexibility is due the fact that the general architecture must be designed instead of simple hyperparameter tuning and data manipulation. To design a NN, the following steps were taken:
+	
+	\begin{enumerate}
+		\item Define the basic network architecture
+		\item Define and test hyperparameters with dataset. These included:
+			\begin{enumerate}
+				\item Number of neurons per layer.
+				\item Activation function per layer.
+				\item The kernel constraint per layer. Used to reduce the probability of overfitting.
+				\item Dropout ratio per layer. 
+				\item Batch size.
+				\item Number of epochs to observe results over.
+			\end{enumerate}
+		\item Define the loss and accuracy funtion.
+		\item Train the network and log per-epoch loss and accuracy score.
+		\item Plot logged accuracy and loss scores.
+		\item If accuracy and/or loss is unacceptable return to the start, considering manipulated existing data by adding or removing features.
+	\end{enumerate}
+		
+
+
+	\textbf{Figure 5} illustrates the general architecture of the neural network that was used on this dataset. The number of iterations through this graph is controlled by the batch size and the number of epochs. Smaller batch sizes requires more iterations to see the entire dataset.
+	
+	The acronyms and nodes on the graph are as follows:
+	\begin{enumerate}
+		\item \textbf{DL:} DL represents a densely connected layer. Each neuron is connected to all other neurons.
+		\item \textbf{DOL:} DOL represents a drop out layer. Drop out layers are used to reduce data memorization/overfitting by randomly removing a portion of the neurons which causes the other neurons to react to this loss. Having a drop out layer is useful when the size of the dataset is relatively small.
+		\item \textbf{epoch:}  An epoch is a single pass through the entire training set which is then followed by the testing set.
+		\item \textbf{loss:} A loss function is calculated using the desired and actual output of the network. The loss function will return an error value for each of the neurons in the output layer. Many different loss functions can be used but in this case, binary cross entropy is used.
+	\end{enumerate}
+
+	\subsection{Refinement}
+	As mentioned in the Benchmark section, 80\% accuracy was achieved by J.R. Flanagan, et al. using a Neural Network model. The results from all of the machine learning algorithms will be compared to this result for refinement.
+	
+	The initial pass of the data through each of the algorithms was the following:
+	
+	\subsubsection{SVM}
+	The initial classification accuracy of the trained support vector machine was \textbf{79.2\%}. This is already relatively close to the benchmark previously discussed.
+	
+	At this point the dataset contained the mean vital readings as well as maximum and minimum readings, removing the maximum and minimum readings was the first step to reduce dimensionality and potentially increase performance. The next step was to grid search even more \textbf{gamma} and \textbf{C} values. After these optimizations, the performance of the SVM increased to \textbf{81.8\%} accuracy.
+	
+	\subsubsection{Adaptive Boosting}
+	The initial classification accuracy of AdaBoost was \textbf{80.0\%}, exactly the benchmark. This was a surprising result but performance could be improved.
+	
+	The same was done as with the SVM, where the max and min values were trimmed from the dataset. The decision stump base estimator was also swapped out for the default estimator which is a standard decision tree. This resulted in an increase in accuracy to \textbf{82.3\%}. 
+	
+	\subsubsection{Extreme Gradient Boosting}
+	The initial classification accuracy of XGBoost was \textbf{80.2\%} slightly above the benchmark. This is quite a good result without manipulating the existing data or more hyperparameter tuning.
+	
+	The max and min patient vital features appeared to be affecting XGBoost negatively, the same as Adaboost or SVM. None performed better with dimensionality reduction as well. The max and min values were dropped. The range of the hyperparameters being tested was widened and min\_child\_weight was added for testing instead of using the default value. These changes resulted in an increased accuracy score to \textbf{82.6\%}. 
+	
+	\subsubsection{Neural Network}
+	The initial classification accuracy of the Keras Neural network using Tensor Flow was not impressive at \textbf{70.2\%}. The initial Neural network was much simpler than the final version discussed in detail in the previous section. The initial NN had no dropout layers, no kernel constraint parameter, had only 1 hidden layer and had very few neurons per layer at 10.
+	
+	In the final version, 3 hidden layers are present, dropout layers were added, a kernel constraint was added, additional data features were considered including gender, the number of nodes were iteratively increased and decreased per layer resulting in a much more robust model. This resulted in an increased accuracy at \textbf{85.8\%} on the 77-80th epoch. This is quite an impressive score compared to the benchmark and other models tested here.
+	
+	It is important to note that this accuracy was selected from the optimal section of hundreds of epochs. Due to the nature of machine learning algorithms each running resulted in different accuracy scores.
 	
 	\bibliography{citations}{}
 	\bibliographystyle{ieeetr}
