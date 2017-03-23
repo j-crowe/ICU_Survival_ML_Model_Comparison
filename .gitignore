@@ -1,2 +1,7 @@
 .texpadtmp
 .ipynb_checkpoints
+*.pyc
+*.aux
+*.synctex.gz
+*.log
+*.blg
