@@ -94,6 +94,7 @@ class DataHandler(object):
         return possible_age
 
     def acquire_vitals(self, lab_events, patient_vitals, patient_info):
+        """Preprocess patient vitals for mean value along with filling in missing fields"""
         # Cycle through data, check for appropriate data within time period, average values and store
         one_day = pd.Timedelta('1 days')
         # Each hospital stay, think of it as an individual patient (though technically not true)
@@ -110,8 +111,8 @@ class DataHandler(object):
                 else:
                     mean = day_results['valuenum'].values.mean()
 
-                    maximum = day_results['valuenum'].values.max()
-                    minimum = day_results['valuenum'].values.min()
+                    # maximum = day_results['valuenum'].values.max()
+                    # minimum = day_results['valuenum'].values.min()
 
                 patient_vitals.set_value(hadm_id, self.vital_ids[lab_item], mean)
 
@@ -134,6 +135,7 @@ class DataHandler(object):
         return patients
 
     def lab_event_query(self, patient_info):
+        """Query for lab events, send off data for pre-processing"""
         # Query database labevents for all information related to all hospital admission ids we are interested in
         # along with all item types we are interested in, defined above
         patient_hadm_ids = patient_info.hadm_id.tolist()
