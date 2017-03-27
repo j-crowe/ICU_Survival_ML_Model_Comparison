@@ -28,26 +28,37 @@
 	
 	\subsection{Problem}
 	
-	A predictive model would be highly useful for ICU staff and physicians. It would aid in prioritizing patients that are considered ``high risk'' and as a simple way to stratify patients in clinical research. 
+    A predictive model would be highly useful for ICU staff and physicians. It would aid in prioritizing patients that are considered ``high risk'' and as a simple way to stratify patients in clinical research. 
+
+	Upon patient admittance and initial blood and microbiology tests, patient survivability will be classified over a 30 day period. While survival rates are available long after 30 days, this is the most critical period for surviving a condition such as sepsis/septic shock. 
 	
-	Upon patient admittance and initial blood and microbiology tests patient survivability will be classified over a 30 day period. While survival rates are available long after 30 days, however this is the most critical period for surviving a condition such as sepsis/septic shock. 
+	The general strategy for solving this problem will mostly involve feature selection, dimensionality reduction, and data preprocessing. The MIMIC-III dataset has thousands of potential features. It will be key to understand the problem and features that help gauge the progress of sepsis as well as automating feature importance and feature correlation to reduce the dimensionality of the problem.
 	
 	Test results and vitals from the first 24 hours in the ICU will be used for consideration. Several class features will be considered: gender, bacterial culture classification, antibiotic treatment, etc. Several continuous features will also be considered: blood urea nitrogen levels, age, blood PH, blood lactate levels, creatinine levels, blood pressure, etc.
 	
-	The survivability of sepsis is strongly correlated with the speed of treatment, the age of the patient, type of infection, and the general state of the condition. The state of the condition can be measured in a variety of ways. Respiratory rate, blood pressure, creatinine (kidneys failing), and lactate levels(anaerobic cellular respiration) strongly suggest the current stage of the condition. Upon arrival, these measurements can be used to classify a patient into a binary survival group.
+	Depending on the number of features being considered, dimensionality reduction through principal component analysis or linear discriminant analysis may be useful to shrink the feature space. 
+	
+	Several different machine learning models will be trained using available data and their results compared to discover an optimal solution. The four different models are adaptive boosting, extreme gradient boosting, support vector machines, and artificial neural networks. 
+	
+	Both of the boosted algorithms have the ability to handle variance in the data, handle missing values, and have the ability to reduce overfitting with little effort. Both Adaboost and XGBoost are known to be highly efficient and well-performing algorithms. While they perform slightly differently, they employ similar techniques that will be interesting to compare.
+	
+	Support vector machines are great at handling somewhat small datasets and approximating non-linear functions. This is a go-to model on a dataset such as this and will be a great model to compare the results of the three other models.
+	
+	Neural networks can form complex relationships between the features that other algorithms are incapable of forming but are therefore much more apt to overfitting. This model is another great comparison since it will likely form the most complex model.
 	
 	\subsection{Metrics}
-	The metric that will be used to gauge the prediction quality is the standard classification accuracy. Classification accuracy is the total number of true positives and true negatives out of all datapoints. It is defined as follows:
-	
+	Originally the metric used to gauge the prediction quality was standard classification accuracy.
 	\[ \text{accuracy} = \frac{\text{true positives} + \text{true negatives}} {\text{total datapoints}} \]
 	
+	However, for a binary classification task with unbalanced data using the area under the receiver operating characteristic curve (AUROC) is a better indication of performance. This is especially the case when attempting to ensure low false negative rates.
 	
+	The receiver operating characteristic curve represents the performance of a binary classifier as its discrimination threshold is varied. In other words, it shows the tradeoff between increasing/decreasing specificity vs sensitivity. 
 	
-	This metric is used because of the low survivability of sepsis. Both false positives and false negatives erode the usefulness of further patient studies and are therefore weighted equally.
+	The area under the ROC curve represents the probability that a binary classifier will rank a randomly selected positive instance higher than a randomly chosen negative one. This can be written as:
 	
-	\textbf{Caveat:} Accuracy is not enough in a real world application if the outcome affects human life. Accuracy weighs misclassifications evenly. This is useful when looking at a problem in a retrospective manner. If used real-time to classify patients, false negatives could severely impact human life.
+	\[ A = \int_\infty^{-\infty} TPR(T)FPR'(T)dT\] 
 	
-	Many patients die of sepsis, however, around 30\%. Due to this high ratio and the intended problem of stratifying patients for future studies, an accuracy score is useful. If used in a different application, it may be useful to select a model with lower accuracy that ensures very low rates of false negatives, a more dangerous false prediction.
+	Since it is of higher importance to accurately classify positive instances (patient death), accuracy is of less importance and will be sacrificed for a higher area under the ROC curve. From hence forth, the area under the ROC curve will be denoted as the AUC.
 	
 	\section{Analysis}
 	\subsection{Data Exploration}
@@ -56,25 +67,42 @@
 	Once input into a Postgres database, there are 20 tables with patient information and 5 dictionary lookup tables. Much of the data is difficult to process due to lack of standardization across multiple source databases(CareVue and MetaVision). Most of the useful information with date-time information associated with it is available in the following tables:
 	
 	\begin{enumerate}
-		\item \textbf{admissions}: Contains information related to a patient's admission. This information includes their hospital stay id, insurance type, date of admission, and suspected diagnosis/condition.
-		\item \textbf{patients}: Patient information such as date of birth, gender, hospital stay id, etc. 
-		\item \textbf{labevents}: Patient lab events with date-time associated with the measurement. This includes information such as creatinine levels.
-		\item \textbf{microbiologyevents}: Patient microbiology tests with date-time associated. This includes tests for infections and resulting prescription.
+		\item \textbf{admissions}: Contains information related to a patient's admission. This information includes their hospital stay id, insurance type, date of admission, and suspected diagnosis/condition. An example is provided below. This snapshot of the table has not been manipulated in any way other than selecting patients admitted with sepsis.
+		\begin{center}
+			\makebox[\textwidth]{\includegraphics[width=400pt]{admission.png}}
+		\end{center}
+		\item \textbf{patients}: Patient information such as date of birth, gender, hospital stay id, etc. An example is provided below. Again, this table has not been manipulated in any way other than selecting patients that were admitted with sepsis.
+		\begin{center}
+			\makebox[\textwidth]{\includegraphics[width=400pt]{patients.png}}
+		\end{center}
+		\item \textbf{labevents}: Patient lab events with date-time associated with the measurement. This includes information such as creatinine levels. This is a snapshot is an example of the layout of the database prior to any reading and pre-processing.
+		\begin{center}
+			\makebox[\textwidth]{\includegraphics[width=400pt]{vitals.png}}
+		\end{center}
+		\item \textbf{microbiologyevents}: Patient microbiology tests with date-time associated. This includes tests for infections and resulting prescription. This snapshot below shows how the database is layed out prior to any pre-processing. 
+		\begin{center}
+			\makebox[\textwidth]{\includegraphics[width=400pt]{microbiology.png}}
+		\end{center}
 	\end{enumerate}
 	
 	Due to the size, variability, and nature of ICU care much of this data must be explored for feasibility in a machine learning model. A good example is blood pressure. While in the MetaVision database, it was standardized with mm/Hg, in the Carevue database that was not the case. It makes the data less useful since information is not standard across different patient entries.
 	
+	Many features need to be calculated with missing values handled appropriately. As can be seen from the snapshot of labevents above, there are many readings, with potential duplicates and potential missing values. For example, some patients may never have creatinine tested for whatever reason, while some patients may have their creatinine tested multiple times in a day. Handling both of these instances will be important and critical to restructuring data properly. It is also necessary to standardize the scale of entries since all readings are using different units. Shifting all data to have zero mean is a good step to help prevent unexpected model behavior.
+	
+	Observing the microbiology snapshot above, patients may have no infections or multiple. Handling these multi-class data entries will be tricky, but will essentially require multiple one-hot entry columns.
+	
 	\subsection{Exploratory Visualizations}
+	
 	The basic patient information housed within the \textbf{Admissions} table has some potentially useful information. Combining patient admission date with their dob we can calculate their age(except patients over 89 due to HIPAA regulations). The visualization of survivability with age can be observed in \textbf{figure 1}.
 	
-	\begin{wrapfigure}{r}{0.5\textwidth}
+	There is a somewhat noticeable trend in \textbf{figure 1} with regards to age and survivability of sepsis but it doesn't appear to be anything that an algorithm could rely on strongly. It is important to discover some other useful features.
+	
+	\begin{wrapfigure}{r}{0.45\textwidth}
 		\begin{center}
-			\includegraphics[width=0.48\textwidth]{age.png}
+			\includegraphics[width=0.44\textwidth]{age.png}
 		\end{center}
 		\caption{Age Breakdown}
 	\end{wrapfigure}
-	
-	There is a somewhat noticeable trend in \textbf{figure 1} with regards to age and survivability of sepsis but it doesn't appear to be anything that an algorithm could rely on strongly. It is important to discover some other useful features.
 	
 	It may be useful to look at the initial blood tests for feature correlation. Observing all of these blood tests that are correlated with sepsis, the following have enough datapoints: bicarbonate, INR, MCH, AST, alkaline phosphatase, PH, creatinine, platelet, PT, PTT, lymphocytes, RBCDW, calcium, neutrophils, glucose, hematocrit, hemoglobin, lactate, BUN, and age.
 	
@@ -92,6 +120,8 @@
 	
 	Within the 30 day period of mortality, none have a positive or negative correlation over +/-0.4, however, there are some useful features to consider. Lactate is relatively strongly correlated with ~0.38 with blood urea nitrogen(BUN), and PH not far behind. Lactate is an indication of shock since lactate is produced by cells that are not receiving enough oxygen. PH is a byproduct of the acidic lactate in the patient's blood hence the correlation. Blood urea nitrogen is an indication that the kidneys are failing to process the excess urea in the blood. This can indicate potential kidney damage or failure. All of these are much more useful than age.
 	
+	Finally, considering microbiology events. Every infection type is taken and the correlation considered. Though the assumption might be made that infection is strongly correlated with the survivability of sepsis, it is important to note that once a patient is septic, the infection type plays little role. Let us look at the number of infections and survivability in \textbf{figure 3}.
+	
 	\begin{wrapfigure}{r}{0.50\textwidth}
 		\begin{center}
 			\includegraphics[width=0.48\textwidth]{bio_graph.png}
@@ -99,15 +129,14 @@
 		\caption{Infection Count and Mortality}
 	\end{wrapfigure}
 	
-	Finally, considering microbiology events. Every infection type is taken and the correlation considered. Though the assumption might be made that infection is strongly correlated with the survivability of sepsis, it is important to note that once a patient is septic, the infection type plays little role. Let us look at the number of infections and survivability in \textbf{figure 3}.
-	
 	There appears to be very little correlation after further observation between survivability and number of infections. With the majority of patients not having an infection discovered within the first 24 hours. Due to this lack of information, the infection type is likely not useful. 
+	
 	
 	These visualizations give some useful insights into the data. One insight is that nothing strongly indicates a patient survival. Therefore many independent features must be considered and trends found. Due to this observation about the data, a neural network, or an ensemble technique like adaptive boosting or extreme gradient boosting may prove useful. 
 	
 	
 	\subsection{Algorithms and Techniques}
-	The accuracy of four different classifiers are to be compared. These classifiers are the following:
+	The area under the ROC curve of four different classifiers are to be compared. These classifiers are the following:
 	
 	\begin{enumerate}
 		
@@ -128,17 +157,17 @@
 		Neural networks, while powerful, have some pretty strong weaknesses. They are difficult to set up and difficult to tune because of the number of parameters. It is also necessary to decide on the architecture of the network yourself. It is not nearly as simple to set up as the previous examples. It is also quite easy to overfit data using neural networks. Without restraint, they have a strong affinity to fit to noise in the data. Due to the nature of this dataset, it will be an important task to keep this algorithm in reign to prevent overfitting.
 	\end{enumerate}
 	
-	These are relatively varied algorithms with much different predictive techniques. The comparison between the predictive accuracy will allow some insight into how the algorithms behave with moderately small datasets, natural noise, and outliers. It is a considerable task to preprocess the data properly in order to optimize the results.
+	These are relatively varied algorithms with much different predictive techniques. The comparison between the AUC will allow some insight into how the algorithms behave with moderately small datasets, natural noise, and outliers. It is a considerable task to preprocess the data properly in order to optimize the results.
 	
 	\subsection{Benchmark}
-	There are few studies into the predictability of patient survival from severe sepsis. There are also many factors that are important in how the prediction is made. I will be focusing on the following research: ``Predicting survival of patients with sepsis by use of regression and neural network models'' by J.R. Flanagan, et al. 
+	There are few studies into the predictability of patient survival from severe sepsis. There are also many factors that are important in how the prediction is made. I will be focusing on the following research: ``From vital signs to clinical outcomes for patients with sepsis: a machine learning basis for a clinical decision support system'' by Eren Gultepe, et al. 
 	\begin{quotation}
-		``Survival after sepsis was predicted with an accuracy of 80\% by the NN model, which used only information collected at the time of the diagnosis of sepsis. The development of multiple organ failure after the diagnosis of sepsis was predicted accurately (81.5\%) with either the MLR or the NN model. Both the MLR and the NN methods depended on the interpretation of a likelihood quantity, requiring the choice of a threshold to make a survival prediction. ''\cite{sepsisresearch}
+		``An accuracy of 0.73 and discriminability of 0.73 AUC for mortality prediction in patients with sepsis was achieved with only three features: median of lactate levels, mean arterial pressure, and median absolute deviation of the respiratory rate. ''\cite{sepsisresearch2}
 	\end{quotation}
 	
-	While this study was done in 1996, there have been few follow-up studies. The few follow-up studies had a similar success rate with slightly different attributes and test periods. Due to the detail of this study, most focus will be put on the work of Flanagan et al. for the benchmark.
+	While this study is mainly focused on predicting the survivability of sepsis through observing only 3 features: lactate levels, mean arterial pressure, and median absolute deviation of the respitory rate, I do not access to all of these features in the MIMIC-III dataset. Therefore I will be considering more features in the hopes to outperform this benchmark's AUC of 0.73. 
 	
-	In the analysis I am conducting, patients are admitted with suspected sepsis and all vitals and lab tests within 24 hours of admission are used in the classification task. This is to standardize periods of importance across all patients observed.
+	In the analysis I am conducting, patients are admitted with suspected sepsis and all vitals and lab tests within 24 hours from admission are used in the classification task, similar to the benchmark. This is to standardize periods of importance across all patients observed.
 	
 	\section{Methodology}
 	\subsection{Data Preprocessing}
@@ -195,19 +224,19 @@
 		\subsubsection{Feature Selection}
 		There are many features that may be of little use when predicting the survivability of sepsis. The more irrelevant features that exist, the more data is required to ensure they do not fit to noise in those features. It is important to remove the features that are of little use. 
 		
+		Feature correlation was calculated and it was observed that the infection type was of little correlation to the survivability of sepsis. The existence of any infection was of little use in predicting survivability as well, therefore these features were dropped from the dataset.
+		
+		With the remaining features, a random forest was trained and the resulting feature importances graphed in \textbf{figure 4}.
+		
+		
+		As can be seen in \textbf{figure 4}, gender, insurance type, and admission type are of little use when predicting survivability. For most algorithms, this data will be dropped. For the neural network, it may be included since more complex relationships could be developed between the features.
+		
 		\begin{wrapfigure}{l}{0.50\textwidth}
 			\begin{center}
 				\includegraphics[width=0.48\textwidth]{feature_correlation_2.png}
 			\end{center}
 			\caption{Feature Correlation Graph}
 		\end{wrapfigure}
-		
-		Feature correlation was calculated and it was observed that the infection type was of little correlation to the survivability of sepsis. The existence of any infection was of little use in predicting survivability as well, therefore these features were dropped from the dataset.
-		
-		With the remaining features, a random forest was trained and the resulting feature importances graphed in \textbf{figure 4}.
-		
-	
-		As can be seen in \textbf{figure 4}, gender, insurance type, and admission type are of little use when predicting survivability. For most algorithms, this data will be dropped. For the neural network, it may be included since more complex relationships could be developed between the features.
 	
 		The important features have been discovered and now machine learning models can be trained on this cleaned and standardized data.
 	
@@ -267,13 +296,6 @@
 	It can be seen that many of the hyperparameters that are tuned have significant interaction and play between one another. XGBoost provides many "knobs" to increase and decrease model complexity while allowing granular selections to reduce the probability of overfitting. XGBoost is complex and quite powerful due to this flexibility.
 	
 	\subsubsection{Neural Network}
-	
-	\begin{wrapfigure}{r}{0.50\textwidth}
-		\begin{center}
-			\includegraphics[width=0.48\textwidth]{diagram.png}
-		\end{center}
-		\caption{Keras Neural Network Flow}
-	\end{wrapfigure}
 
     An artificial neural network is the most complex machine learning algorithm that is used in this project. Much of its flexibility is due to the fact that the general architecture must be designed instead of simple hyperparameter tuning and data manipulation. To design a NN, the following steps were taken:
 	
@@ -288,13 +310,19 @@
 				\item Batch size.
 				\item Number of epochs to observe results over.
 			\end{enumerate}
-		\item Define the loss and accuracy funtion.
-		\item Train the network and log per-epoch loss and accuracy score.
-		\item Plot logged accuracy and loss scores.
-		\item If accuracy and/or loss is unacceptable return to the start, consider manipulating existing data by adding or removing features.
+		\item Define the loss and accuracy function.
+		\item Create a custom callback to tes the AUC score per-epoch since AUC is not a default metric in Keras.
+		\item Train the network and log per-epoch loss, accuracy, and AUC score.
+		\item Plot logged accuracy, loss, and AUC scores.
+		\item If accuracy, loss, and/or AUC are unacceptable return to the start, consider manipulating existing data by adding or removing features.
 	\end{enumerate}
 		
-
+	\begin{wrapfigure}{r}{0.45\textwidth}
+		\begin{center}
+			\includegraphics[width=0.44\textwidth]{diagram.png}
+		\end{center}
+		\caption{Keras Neural Network Flow}
+	\end{wrapfigure}
 
 	\textbf{Figure 5} illustrates the general architecture of the neural network that was used on this dataset. The number of iterations through this graph is controlled by the batch size and the number of epochs. Smaller batch sizes require more iterations to see the entire dataset.
 	
@@ -307,31 +335,31 @@
 	\end{enumerate}
 
 	\subsection{Refinement}
-	As mentioned in the Benchmark section, 80\% accuracy was achieved by J.R. Flanagan, et al. using a neural network model. The results from all of the machine learning algorithms will be compared to this result for refinement.
+	As mentioned in the Benchmark section, an AUC score of 0.73 was achieved by Eren Gultepe, et al. The results from all of the machine learning algorithms will be compared to this result for refinement.
 	
 	The initial pass of the data through each of the algorithms was the following:
 	
 	\subsubsection{SVM}
-    The initial classification accuracy of the trained support vector machine was \textbf{79.2\%}. This is already relatively close to the benchmark previously discussed.
+    The initial AUC score of the trained support vector machine was \textbf{0.735}. This is already higher than that of the benchmark which is a fantastic start.
 
-	At this point, the dataset contained the mean vital readings, as well as maximum and minimum readings, removing the maximum and minimum readings, was the first step to reduce dimensionality and potentially increase performance. The next step was to grid search even more \textbf{gamma} and \textbf{C} values. After these optimizations, the performance of the SVM increased to \textbf{81.8\%} accuracy.
+	At this point, the dataset contained the mean vital readings, as well as maximum and minimum readings, removing the maximum and minimum readings, was the first step to reduce dimensionality and potentially increase performance. After further testing, more features were trimmed to improve performance. These trimmed features are: gender, prior, INR, lymphocytes, glucose, and hemoglobin. The next step was to grid search even more \textbf{gamma} and \textbf{C} values. After these optimizations, the performance of the SVM increased to \textbf{0.796} AUC.
 	
 	\subsubsection{Adaptive Boosting}
-	The initial classification accuracy of AdaBoost was \textbf{80.0\%}, exactly the benchmark. This was a surprising result but performance could be improved.
+	The initial AUC of AdaBoost was \textbf{0.723}, slightly worse than the benchmark.
 	
-	The same was done as with the SVM, where the max and min values were trimmed from the dataset. The decision stump base estimator was also swapped out for the default estimator which is a standard decision tree. This resulted in an increase in accuracy to \textbf{82.3\%}. 
+	The same was done as with the SVM, where the max and min values were trimmed from the dataset along with the additional features removed for SVMs. The decision stump base estimator was also swapped out for the default estimator which is a standard decision tree. This resulted in an increase in AUC score to \textbf{0.768}. 
 	
 	\subsubsection{Extreme Gradient Boosting}
-	The initial classification accuracy of XGBoost was \textbf{80.2\%} slightly above the benchmark. This is quite a good result without manipulating the existing data or more hyperparameter tuning.
+	The initial AUC score of XGBoost was \textbf{0.743} slightly above the benchmark. This is quite a good result without manipulating the existing data or more hyperparameter tuning.
 	
-	The max and min patient vital features appeared to be affecting XGBoost negatively, the same as Adaboost or SVM. No model performed better with PCA dimensionality reduction as well. The max and min values were dropped. The range of the hyperparameters being tested was widened and min\_child\_weight was added for testing instead of using the default value. These changes resulted in an increased accuracy score to \textbf{82.6\%}. 
+	The max min and additional patient vital features appeared to be affecting XGBoost negatively, the same as Adaboost or SVM. No model performed better with PCA dimensionality reduction as well. The max and min values were dropped. The range of the hyperparameters being tested was widened and min\_child\_weight was added for testing instead of using the default value. These changes resulted in an increased AUC score to \textbf{0.790}. 
 	
 	\subsubsection{Neural Network}
-    The initial classification accuracy of the Keras Neural network using Tensor Flow was not impressive at \textbf{70.2\%}. The initial Neural network was much simpler than the final version discussed in detail in the previous section. The initial NN had no dropout layers, no kernel constraint parameter, had only 1 hidden layer and 10 neurons per layer.
+    The initial AUC score of the Keras Neural network using Tensor Flow was not impressive at \textbf{0.678}. The initial Neural network was much simpler than the final version discussed in detail in the previous section. The initial NN had no dropout layers, no kernel constraint parameter, had only 1 hidden layer and 10 neurons per layer.
 
-	In the final version, 3 hidden layers are present, dropout layers were added, a kernel constraint was added, additional data features were considered including gender, the number of nodes were iteratively increased and decreased per layer resulting in a much more robust model. This resulted in an increased accuracy at \textbf{85.8\%} on the 77-80th epoch. This is quite an impressive score compared to the benchmark and other models tested here.
+	In the final version, 3 hidden layers are present, dropout layers were added, a kernel constraint was added, additional data features were considered including gender, the number of nodes were iteratively increased and decreased per layer resulting in a much more robust model. This resulted in an increased AUC of \textbf{0.793} on the 26th epoch. This is also quite an impressive score compared to the benchmark and other models tested here.
 
-	It is important to note that this accuracy was selected from the optimal section of hundreds of epochs. Due to the nature of neural networks, each running resulted in different accuracy scores.
+	It is important to note that this AUC was selected from the optimal section of hundreds of epochs. Due to the nature of neural networks, each running resulted in different AUC scores.
 	
 	\section{Results}
 	\subsection{Model Evaluation and Validation}
@@ -340,84 +368,84 @@
 	Most of the discussion will be on the architecture of the NN but the following will show the final selected hyperparameters in all models that performed best among the attempted combinations.
 	
 	\subsubsection{Support Vector Machine}
-	While SVMs did not perform as well as the other models, the parameter selection that worked best was:
+	Initially when testing for accuracy, the support vector machine performed the poorest out of all the models. When testing for AUC, it performed the best by a small margin. This is an interesting result:
 	
 	\begin{enumerate}
-		\item \textbf{C:} 1000 - the default value for C is 1, this is a reasonable selection. There are instances where a much higher C value and smaller margin are useful.
-		\item \textbf{gamma:} 0.001 - this value of gamma appears reasonable. It is a conservative value but not too constrained.
+		\item \textbf{C:} 1 - the default value for C is 1, this is a reasonable selection.
+		\item \textbf{gamma:} 0.01 - this value of gamma appears reasonable. It is a conservative value but not too constrained.
 	\end{enumerate}
 	
 	\subsubsection{Adaptive Boosting}
-	Adaboost performed better than the SVM which was somewhat surprising. The hyperparameter selection was reasonable after RandomizedSearchCV, they were:
+	Adaboost performed the poorest out of all the models. The hyperparameter selection was reasonable after RandomizedSearchCV, they were:
 
 	\begin{enumerate}
 		\item \textbf{n\_estimators:} 32 - This is a very conservative number of estimators but is logical consider the feature space and the size of the dataset. The default value is 50. If it was much higher, overfitting would be a likely concern.
-		\item \textbf{learning\_rate:} 0.218 - This is also a conservative number for the learning rate considering the default value is 1. Both the number of estimators and learning rate were likely throttled to compensate for the relatively small feature set and data set while having a more complex base estimator than a decision stump.
+		\item \textbf{learning\_rate:} 0.166 - This is also a conservative number for the learning rate considering the default value is 1. Both the number of estimators and learning rate were likely throttled to compensate for the relatively small feature set and data set while having a more complex base estimator than a decision stump.
 	\end{enumerate}
 	\subsubsection{Extreme Gradient Boosting}
 	XGBoost hyperparameter selection is more complicated to analyze due to the complexity of the algorithm. The hyperparameter selection is as follows:
 	
 	\begin{enumerate}
-		\item \textbf{n\_estimators:} 66 - With a default of 100, a conservative value.
-		\item \textbf{gamma:} 8 - With a default of 1, this is also conservative. The larger the gamma, the more conservative the algorithm will be. 
-		\item \textbf{learning\_rate:} 0.2 - With a default of 0.3, this appears to be a conservative learning rate. This was likely selected due to reduce observed overfitting.
-		\item \textbf{max\_depth:} 13 - With a default of 3, a max depth allows for some increased model complexity to compensate for the conservative number of estimators, gamma, and learning rate.
-		\item \textbf{min\_child\_weight:} 6 - with a default of 1, again a conservative value. A somewhat high minimum child weight is required otherwise partitioning is halted.
+		\item \textbf{n\_estimators:} 47 - With a default of 100, a conservative value.
+		\item \textbf{gamma:} 5 - With a default of 1, this is also conservative. The larger the gamma, the more conservative the algorithm will be. 
+		\item \textbf{learning\_rate:} 0.1 - With a default of 0.3, this appears to be a conservative learning rate. This was likely selected due to reduce observed overfitting.
+		\item \textbf{max\_depth:} 14 - With a default of 3, a max depth allows for some increased model complexity to compensate for the conservative number of estimators, gamma, and learning rate.
+		\item \textbf{min\_child\_weight:} 9 - with a default of 1, again a conservative value. A somewhat high minimum child weight is required otherwise partitioning is halted.
 	\end{enumerate}
 	
-	Observing the selected hyperparameters for XGBoost suggests that cross-validation was struggling to select parameters that increased model accuracy while preventing overfitting. This can be seen through the conservative selection of hyperparameters. 
+	Observing the selected hyperparameters for XGBoost suggests that cross-validation was struggling to select parameters that increased model AUC while preventing overfitting. This can be seen through the conservative selection of hyperparameters. 
 	\subsubsection{Neural Network}
+	
 	The Neural network was the most complex system to set up and tune and required much more manual tweaking than the previous algorithms. The general architecture can be seen in \textbf{figure 5} in the previous section. The resulting architecture that was selected is as follows:
 	
+	
 	\begin{enumerate}
-		\item There are 5 densely connected layers of the neural network with 3 hidden layers. The number of neurons in each layer sequentially is as follows: \textbf{ 125, 50, 20, 10, 1}. A somewhat deep neural network with decreasing neuron count was selected in order to aid in finding more complex relationships between the features that other machine learning models may be incapable of learning.
-		\item Each densely connected layer, aside from the input and output layers, has a maximum-norm kernel constraint of 3 to fight data memorization. The kernel constraint value was selected through iterative tested.
+		\item There are 5 densely connected layers of the neural network with 3 hidden layers. The number of neurons in each layer sequentially is as follows: \textbf{ 125, 50, 25, 10, 1}. A somewhat deep neural network with decreasing neuron count was selected in order to aid in finding more complex relationships between the features that other machine learning models may be incapable of learning.
+		\item Each densely connected layer, aside from the input and output layers, has a maximum-norm kernel constraint of 5 to fight data memorization. The kernel constraint value was selected through iterative tested.
 		\item Between each densely connected layer is a dropout layer with a dropout value of \textbf{0.5}, which results in 50\% of randomly selected neurons being "dropped" or ignored during training. This helps fight complex co-adaptations among neurons, reduces the fragility of a highly specialized model, and reduces overfitting. 0.5 on all layers is somewhat high and was found to increase performance and delay overfitting significantly.
 		\item The only loss function that made sense for this specific NN application was  \textbf{binary\_crossentropy}.
 		\item Several different optimizers were tested but the most stable in this application was \textbf{rmsprop}. There is no evidence suggesting that it would perform better in this case rather than others however.
-		\item The selected metrics that are tested for are \textbf{accuracy}.
+		\item The selected metrics that are tested for are \textbf{accuracy}. However, a custom callback function logs the AUC between each epoch.
 		\item 500 epochs are run with a batch size of 128. With an approximate input size of 1200, around 4687 iterations are executed during the learning process.
 	\end{enumerate}
 
-	\begin{wrapfigure}{r}{0.50\textwidth}
+    To verify the robustness and ensure that data memorization is not occurring in the epochs chosen for the optimized model, the model accuracy, AUC and loss are stored. \textbf{Figure 6} shows these values graphed.
+
+	Comparing the model accuracy to the model loss graph is becomes apparent that data memorization gradually occurs as the testing accuracy climbs towards 100\%. At around epoch 100, training accuracy has surpassed testing accuracy and steadily increases all 500 epochs. The model loss is a good indication of overfitting as well. We can see that the testing loss flattens around 50-100 and surpasses training loss at around epoch 100. It is important that the model cuts off training before 100 epochs to reduce overfitting and minimize loss. 
+
+	The epochs with the highest accuracy and best AUC score are near epoch \textbf{26}. This is a sweet spot and indicates at this point the model has not begun to overfit so is generalizable but also highly accurate. While accuracy is not the metric explicitely being optimized and observed, it is still a good indication of performance as well as a sign of overfitting when comparing train/test accuracy divergence.
+	
+		 \begin{wrapfigure}{r}{0.38\textwidth}
 		\begin{center}
-			\includegraphics[width=0.48\textwidth]{ml_accuracy_loss.png}
+			\includegraphics[width=0.37\textwidth]{auc.png}
 		\end{center}
-		\caption{NN Accuracy and Loss Graph by Epoch}
+		\caption{NN Accuracy, loss, and AUC by Epoch}
 	\end{wrapfigure}
-
-    To verify the robustness and ensure that data memorization is not occurring in the epochs chosen for the optimized model, the model accuracy and loss are graphed separating training and testing results. \textbf{Figure 6} shows the model accuracy along with the model loss by epoch.
-
-	Comparing the model accuracy to the model loss graph is becomes apparent that data memorization gradually occurs as the testing accuracy climbs towards 100\%. At around epoch 150, training accuracy has surpassed testing accuracy and steadily increases all 500 epochs. The model loss is a good indication of overfitting as well. We can see that the testing loss flattens around 50-100 and surpasses training loss at around epoch 100. It is important that the model cuts off training before 100 epochs to reduce overfitting and minimize loss. 
-
-	The epochs with the highest accuracy are \textbf{77-80}. This is a sweet spot and indicates at this point the model has not begun to overfit so is generalizable but also highly accurate.
 
 	
 	\subsection{Justification}
+	All of the tested models outperformed the benchmark by a significant margin. The support vector machine had an AUC of \textbf{0.796} which beats the benchmark by \textbf{12\%}. The results are promising but it is important to note several limitations to the outcome of this model comparison study.
 	
-    A multi-layered neural network built with Keras using a TensorFlow backend resulted in a highly accurate model that outperformed the benchmark by \textbf{7.3\%} at an accuracy of \textbf{85.8\%}. The results are promising but it is important to note several limitations to the outcome of this model comparison study. 
 
 	The dataset is small at around 1200 patient entries. To obtain a more reliable result, a dataset of several hundred thousand patients would be necessary. The nature of medical data is sparse, with high variability. The largest problem in dealing with this data was smoothing over irregularities, and swathes of missing and highly important features.
 
-	While the results are impressive for relying on around 20 features, there are many features that would have been highly useful and possibly more valuable if they could have been properly processed. Respiration rate is one feature that was unusable due to the state in which the two original sources saved the data.
+	While the results are impressive for relying on around 20 features, there are many features that would have been highly useful and possibly more valuable if they could have been properly processed. Respiration rate is one feature that was unusable due to the state in which the two original sources saved the data. The benchmark study also used fewer features, however I was unable to obtain information regarding most of them in the MIMIC-III dataset.
 
-	To reiterate, it is important to note that this study's purpose was to gauge accuracy in order to stratify patients for further analysis and study. No model here would be useful or safe in a real application. Predicting a false negative could result in a patient being treated improperly or killed. That is why this is currently only useful for retrospective studies and patient stratification.
-
-	In summary, the application is useful in a very limited use case. It outperformed previous 	studies using similar methods but due to the prioritization of accuracy over reducing false positives, it only is applicable in studying data trends.
 	
+	In summary, the application is useful in a very limited use case. It outperformed previous studies using similar methods. Due to the prioritization of ROC AUC, reducing false negatives was a priority at the expense of overall accuracy. For medical data, and for safety, AUC is more useful than accuracy.
+	
+
+		
 	\section{Conclusion}
 	
 	\subsection{Free Form Visualization}
+
 	
-		\begin{wrapfigure}{l}{0.50\textwidth}
-		\begin{center}
-			\includegraphics[width=0.48\textwidth]{correlation.png}
-		\end{center}
-		\caption{Sepsis Survival Feature Correlation}
-	\end{wrapfigure}
 	The most surprising and interesting result came from diving into a correlational breakdown of survivability and patient lab results. As seen in \textbf{figure 7}, several features had relatively strong positive or negative correlation to sepsis survival. Ignoring inter-feature correlations, most of these feature-survivability correlations are logical. Lactate, Blood Urea Nitrogen, PT, INR, and PTT have been thoroughly studied and documented in guaging the stage of a septic condition. Age and creatinine ranked relatively low in comparison as well as in feature importance ranked by a trained random forest. This fact was quite surprising. 
 	
 	This surprising discrepancy between previous studies and this dataset brings to question our collective understanding of sepsis and treatment. While treatment packages and standards are important in ensuring quality care, cases are vastly different with humans being incapable of discerning them typically. Machine learning algorithms may be capable of stratifying patients real time to provide optimal care on a per case basis. While these models are not suited for this real time case, further studies and insights can be gained through its use in stratifying and analyzing patients in retrospect. 
+	
+
 		
 	\subsection{Reflection}
 	The process used in developing this project can be summarized in the following steps:
@@ -433,6 +461,13 @@
 		\item Select a classifier and weigh results.
 	\end{enumerate}
 
+		\begin{wrapfigure}{l}{0.40\textwidth}
+	\begin{center}
+		\includegraphics[width=0.39\textwidth]{correlation.png}
+	\end{center}
+	\caption{Sepsis Survival Feature Correlation}
+\end{wrapfigure}
+
     While developing the neural network was the most interesting and fun, the most difficult steps were \textbf{steps 3, 4, and 5}. The MIMIC-III dataset is vast and highly useful but there are some very distinct pitfalls. Much of the data does not include date-time information. The initial plan was to get hourly information from the time of diagnosis until release or death. The diagnosis table does not have date-time related information tied to them as they are used only for billing purposes. This same problem exists with procedures. It is impossible to see the outcome of procedures or do correlational studies when the procedure time is unknown. Due to these limitations, it was difficult to land on a project idea that was interesting, useful, and feasible.
 
 	Once a project was decided on, it was another challenge finding features that were also feasible to use. For example, respiration rate is one of the most important indicators of sepsis stage. Unfortunately, respiration rate information is stored in a non-standardized way across the two origin databases. Due to this, too much information loss existed making the respiration rate unusable for this study.
@@ -442,7 +477,6 @@
 	\subsection{Improvement}
 	There are several improvements that could and should be made to this implementation. The first, and most important, is the size and origin of the dataset. While approximately 1200 patient samples is not trivial, it is not significant enough to compensate for the noise present in medical information. The other issue is related to the origin of the data. All data originated from the Beth Israel Deaconess Medical Center in Boston Massachusetts. This hospital has a high volume ICU which is good in producing useful medical data but it is geographically limiting. To obtain more generalizable results, more hospitals spanning the country would need to provide information for analysis as well.
 	
-	Another significant and potentially dangerous limitation that was mentioned earlier was the prioritization of model accuracy over reducing false negatives. In a real world implementation where a model is used to help doctors stratify patients real-time, accuracy is less important than identifying all patients that are at highest risk (ie. reducing false negatives). While accuracy is useful for retrospective studies, it could be dangerous to use such a model to classify patients at the hospital.
 	
 	\bibliography{citations}{}
 	\bibliographystyle{ieeetr}
